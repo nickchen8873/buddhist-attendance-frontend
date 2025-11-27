@@ -1,0 +1,172 @@
+<script setup>
+import { useRouter } from 'vue-router'
+import { useUserStore } from '../store'
+import MemberList from './MemberList.vue'
+import {getMembers, deleteMember} from '../api/member'
+import { ref, onMounted } from 'vue'
+
+const userStore = useUserStore()
+const router = useRouter()
+const members = ref([])
+
+const handleLogout = () => {
+  userStore.logout()
+  router.push('/')
+}
+
+//撈資料的 function
+const fetchMembers = async (query = {}) => {
+  try {
+    const res = await getMembers(query)
+    members.value = res.data   // 這裡把API回傳的陣列指定給members
+  } catch (err) {
+    alert('取得成員名單失敗')
+    console.log(err)
+  }
+}
+
+const fetchRecent3Months = async () => {
+  try {
+    const today = new Date();
+    const tomorrow = new Date();
+    const d3m = new Date();
+
+    tomorrow.setDate(today.getDate() + 1)
+    d3m.setMonth(today.getMonth() - 3);
+    const pad = n => n.toString().padStart(2, '0');
+    const toDateStr = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+    const res = await getMembers({ joinDateStart: toDateStr(d3m), joinDateEnd: toDateStr(tomorrow) })
+    members.value = res.data   // 這裡把API回傳的陣列指定給members
+  } catch (err) {
+    alert('取得成員名單失敗')
+    console.log(err)
+  }
+}
+
+//關鍵字查詢
+const handleSearch = async (payload = '') => {
+  try {
+    console.log('收到了子組件的search事件，資料為：', payload);
+    const res = await getMembers({keyword: payload})
+    members.value = res.data   // 這裡把API回傳的陣列指定給members
+  } catch (err) {
+    alert('查詢出現錯誤')
+    console.log(err)
+  }
+}
+
+onMounted(async () => {
+  fetchMembers()
+})
+
+async function refresh() {
+  // console.log('keyword: ', keyword)
+  const res = await getMembers()
+  members.value = res.data
+}
+
+function onAdd() {
+  router.push('/members/new')
+}
+function onEdit(member) {
+  router.push(`/members/${member.id}/edit`)
+}
+function onDelete(member) {
+  // 這裡呼叫你的刪除API
+  if (confirm('確定要刪除嗎？')) {
+    deleteMember(member.id).then(refresh(null))
+  }
+}
+</script>
+
+<template>
+  <div>
+    <header>
+      <!-- <div class="user-info">
+        {{ userStore.user.username }} {{ userStore.user.dharma_name }}，您好！
+        <button @click="handleLogout">登出</button><br>
+        登入時間: {{ new Date(userStore.user.last_login).toLocaleString() }}
+      </div> -->
+      <div class="header-bar" style="display:flex;">
+        <div style="width:max-content; align-items: center;">
+          <img src = "../../logo.svg" alt="淨土宗宗徽" style="height:200px;width:200px;"/>
+        </div>
+        <div style="width:max-content; margin:auto ">
+          <div style="position: relative;left: 50%;transform: translate(-50%, -100%);text-align: center; align-items: flex-start;">
+            <a style="font-size: 28px;">新店念佛會志工系統</a>
+          </div>
+          <div style="position: relative;left: 50%;transform: translate(-50%, 0%)">
+            <button class="btn" @click="onAdd">新增蓮友</button>
+            <button class="btn" @click="activity">本日活動</button>
+            <button class="btn" @click="manage">帳號管理</button>
+            <button class="btn" @click="logout">系統退出</button>
+          </div>
+        </div>
+        <div class="center-outer" style="height: max-content;">
+          <div class="button-panel">
+            <div><button>檔案匯出</button></div>
+            <div><button>篩選列印</button></div>
+            <div><button>條碼列印</button></div>
+          </div>
+        </div>
+      </div>
+    </header>
+    
+    <!-- 以下可放首頁其他內容 -->
+    <MemberList
+      :members="members"
+      :onSearch="refresh"
+      :onAdd="onAdd"
+      :onEdit="onEdit"
+      :onDelete="onDelete"
+      :fetchMembers="fetchMembers"
+      :fetchRecent3Months="fetchRecent3Months"
+      @search="handleSearch"
+    />
+  </div>
+</template>
+
+<style scoped>
+.user-info {
+  text-align: right;
+  padding: 10px;
+}
+button {
+  margin-left: 10px;
+}
+.btn {
+  font-size: 18px;
+  background: #d0e6d8;
+  border: 1.5px solid #5b7b72;
+  padding: 8px 24px;
+  border-radius: 6px;
+  margin-right: 12px;
+  cursor: pointer;
+}
+.center-outer {
+  display: flex;
+  justify-content: center; /* 水平置中 */
+  align-items: center;     /* 垂直置中 */
+  height: 100vh;           /* 撐滿整個視窗高度 */
+}
+.button-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 5px;
+  padding: 10px;
+  width: 120px;
+}
+.button-panel > div {
+  margin: 8px 0;
+}
+.button-panel button {
+  width: 110%;
+  border-radius: 2px;
+  padding: 8px 0;
+  font-size: 18px;
+  background-color: #fdc92d;
+  cursor: pointer;
+}
+</style>

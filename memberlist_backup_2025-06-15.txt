@@ -1,0 +1,115 @@
+<template>
+  <div class="search-bar" style="margin-left: 134px;">
+    <input v-model="keyword" placeholder="輸入姓名、法號、電話、組別、地址" @keyup.enter="onSearch(keyword)" style="width: 215px;margin: 5px;"/>
+    <!-- <select v-model="status">
+      <option value="">全部狀態</option>
+      <option value="active">在職</option>
+      <option value="leave">離職</option>
+      <option value="hidden">隱藏</option>
+      <option value="deceased">已往生</option>
+    </select> -->
+    <button @click="onSearch(keyword)" style="margin: 2.5px;">查詢</button>
+    <button @click="reset">清除</button>
+  </div>
+  <div class="member-list-panel">
+    <h2>成員名單</h2>
+    <div class="toolbar">
+      <button @click="onAdd">新增成員</button>
+    </div>
+    <table class="member-table">
+      <thead>
+        <tr>
+          <th>姓名</th>
+          <th>法號</th>
+          <th>性別</th>
+          <th>電話</th>
+          <th>生日</th>
+          <th>狀態</th>
+          <th>組別</th>
+          <th>角色</th>
+          <th>地址</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="m in members" :key="m.id">
+          <td>{{ m.name }}</td>
+          <td>{{ m.dharma_name }}</td>
+          <td>{{ m.gender === 'F' ? '女性' : '男性' }}</td>
+          <td>{{ m.phone }}</td>
+          <td>{{ m.birthday?.slice(0, 10) }}</td>
+          <td>{{ m.status === 'active' ? '共修' : m.status === 'leave' ? '自離' : m.status === 'deceased' ? '往生' : m.status }}</td>
+          <td>{{ m.group }}</td>
+          <td>{{ roleText(m.role) }}</td>
+          <td>{{ m.address }}</td>
+          <td>
+            <button @click="onEdit(m)">編輯</button>
+            <button @click="onDelete(m)">刪除</button>
+          </td>
+        </tr>
+        <tr v-if="!members.length">
+          <td colspan="9" style="text-align:center;color:#888;">（查無資料）</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</template>
+
+<script setup>
+  import { ref } from 'vue'
+
+  defineProps(['members', 'onSearch','onAdd', 'onEdit', 'onDelete'])
+
+  const keyword = ref('');
+
+  function roleText(role) {
+    switch (role) {
+      case 'member': return '志工'
+      case 'volunteer': return '義工'
+      case 'teacher': return '法師'
+      case 'nurse': return '看護'
+      default: return role
+    }
+  }
+
+  const reset = () => {
+  keyword.value = ''
+  }
+</script>
+
+<style scoped>
+.member-list-panel {
+  background: #f4f7f9;
+  border: 1px solid #bbb;
+  border-radius: 7px;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 32px auto;
+  box-shadow: 2px 2px 12px #eee;
+}
+.toolbar {
+  margin-bottom: 10px;
+}
+.member-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 15px;
+  background: #fff;
+}
+.member-table th, .member-table td {
+  border: 1px solid #bbb;
+  padding: 8px 12px;
+}
+.member-table th {
+  background: #e7ecf2;
+  font-weight: bold;
+}
+.member-table tr:nth-child(even) {
+  background: #f8fafd;
+}
+.member-table button {
+  margin-right: 4px;
+  padding: 2px 10px;
+  font-size: 14px;
+}
+</style>
