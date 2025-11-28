@@ -47,7 +47,6 @@ const fetchRecent3Months = async () => {
 //關鍵字查詢
 const handleSearch = async (payload = '') => {
   try {
-    console.log('收到了子組件的search事件，資料為：', payload);
     const res = await getMembers({keyword: payload})
     members.value = res.data   // 這裡把API回傳的陣列指定給members
   } catch (err) {
@@ -61,7 +60,6 @@ onMounted(async () => {
 })
 
 async function refresh() {
-  // console.log('keyword: ', keyword)
   const res = await getMembers()
   members.value = res.data
 }
@@ -77,6 +75,9 @@ function onDelete(member) {
   if (confirm('確定要刪除嗎？')) {
     deleteMember(member.id).then(refresh(null))
   }
+}
+function  activity(){
+  router.push('/attendance/today')
 }
 </script>
 

@@ -15,7 +15,6 @@ export const useUserStore = defineStore('user', {
 
       setApiToken(token)          // 設定 axios / fetch header
       localStorage.setItem('token', token) // 如果你有打算讓登入持久化
-      console.log('userId= ', this.user.id)
       localStorage.setItem('userId', this.user.id ?? '')
       localStorage.setItem('username', this.username ?? '')
       localStorage.setItem('role', this.user.role ?? '')

@@ -3,7 +3,6 @@ import api from './index';
 // 取得所有成員
 export function getMembers(query = {}) {
   // query 可能長這樣: { status: 'active' }、{ group: 'A組' }...
-  console.log(query)
   return api.get('/members', { params: query })
 }
 

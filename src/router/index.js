@@ -16,6 +16,11 @@ const routes = [
   { path: '/members', component: MemberList },
   { path: '/members/new', component: MemberForm, props: { mode: 'create' } },
   { path: '/members/:id/edit', component: MemberForm, props: route => ({ id: route.params.id, mode: 'edit' }) },
+  {
+    path: '/attendance/today',
+    name: 'attendance-today',
+    component: () => import('../views/TodayAttendance.vue')
+  }
 ]
 
 const router = createRouter({
