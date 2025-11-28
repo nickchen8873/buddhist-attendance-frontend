@@ -5,7 +5,23 @@
       <!-- 上方只顯示日期 -->
       <div class="summary-row">
         <span>日期：{{ displayDate }}</span>
-      </div>
+
+        <div class="search-box">
+            <input
+            v-model="searchKeyword"
+            type="text"
+            placeholder="輸入姓名 / 法名 / 手機後三碼"
+            @keyup.enter="handleSearchCheckin"
+            />
+            <button
+            type="button"
+            :disabled="submitting || !searchKeyword.trim()"
+            @click="handleSearchCheckin"
+            >
+            搜尋報到
+            </button>
+        </div>
+    </div>
   
       <div v-if="loading" class="hint">載入中...</div>
       <div v-else-if="error" class="error">{{ error }}</div>
@@ -168,7 +184,8 @@
     fetchAttendancesByDate,
     createAttendance,
     updateAttendanceMeal,
-    deleteAttendance
+    deleteAttendance,
+    checkinByKeyword
   } from '../api/attendance'
 import {getMembers} from '../api/member'
   
@@ -177,6 +194,9 @@ import {getMembers} from '../api/member'
   const loading = ref(false)
   const submitting = ref(false)
   const error = ref('')
+
+  // 🔍 搜尋用關鍵字
+const searchKeyword = ref('')
   
   // 今天日期字串（YYYY-MM-DD）
   const today = new Date()
@@ -382,6 +402,32 @@ import {getMembers} from '../api/member'
     }
   }
   
+  // ---- 搜尋框：按 Enter 或按鈕 -> POST /api/checkin ----
+async function handleSearchCheckin() {
+  const kw = searchKeyword.value.trim()
+  if (!kw || submitting.value) return
+
+  submitting.value = true
+  try {
+    await checkinByKeyword(kw)
+
+    // 清空輸入框
+    searchKeyword.value = ''
+
+    // 重新載入資料，讓三欄狀態更新
+    await loadData()
+  } catch (e) {
+    console.error(e)
+    alert(
+      '報到失敗：' +
+        (e?.response?.data?.message || e?.message || '未知錯誤')
+    )
+  } finally {
+    submitting.value = false
+  }
+}
+
+
   onMounted(loadData)
   </script>
   
@@ -397,13 +443,42 @@ import {getMembers} from '../api/member'
   }
   
   .summary-row {
-    display: flex;
-    justify-content: flex-start;
-    gap: 8px;
-    margin-bottom: 16px;
-    font-size: 15px;
-    color: #224366;
-  }
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 15px;
+  color: #224366;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.search-box input {
+  width: 260px;
+  padding: 4px 8px;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.search-box button {
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid #888;
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.search-box button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
   
   .hint {
     margin-top: 8px;

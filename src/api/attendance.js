@@ -23,3 +23,8 @@ export function updateAttendanceMeal(id, with_meal) {
 export function deleteAttendance(id) {
     return api.delete(`/attendances/${id}`)
 }
+
+// 🔍 透過關鍵字快速報到：姓名 / 法名 / 手機後三碼
+export function checkinByKeyword(keyword) {
+    return api.post('/attendances/checkin', { keyword })
+}

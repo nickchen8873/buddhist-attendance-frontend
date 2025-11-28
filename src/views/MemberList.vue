@@ -56,7 +56,7 @@
       <tbody>
         <tr v-for="m in members" :key="m.id" @dblclick="onEdit(m)" style="cursor: pointer;">
           <td><input type="checkbox" v-model="selected" :value="m.id" /></td>
-          <td>{{ m.barcode || m.id }}</td>
+          <td>{{ m.id }}</td>
           <td>{{ m.group }}</td>
           <td>{{ m.name }}</td>
           <td>{{ m.dharma_name }}</td>

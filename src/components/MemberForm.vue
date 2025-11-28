@@ -86,6 +86,19 @@
             <label>ID No.：</label>
             <input v-model="member.id" readonly style="background:#f0f0f0"/>
           </div>
+          <!-- 🔽 顯示 QR Code -->
+          <div class="form-row" v-if="mode === 'edit'">
+            <label>QR Code：</label>
+            <div class="qr-wrapper">
+              <template v-if="barcodeUrl">
+                <img :src="barcodeUrl" alt="Member QR Code" class="qr-image" />
+                <div class="qr-text">條碼：{{ member.barcode }}</div>
+              </template>
+              <div v-else class="qr-placeholder">
+                尚未產生條碼
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="form-actions">
@@ -102,6 +115,7 @@ import { useRoute, useRouter } from 'vue-router'
 import {createMember, getMember, updateMember, fetchMaxId} from '../api/member'
 import {useUserStore} from '../store/index'
 import { updateUser } from '../api/user'
+import QRCode from 'qrcode'
 
 const route = useRoute()
 const router = useRouter()
@@ -183,8 +197,29 @@ onMounted(async () => {
   if (mode === 'edit' && route.params.id) {
     const { data } = await getMember(route.params.id)
     Object.assign(member.value, data)
+
+    // ✅ 拿到 member 資料之後產生 QR code
+    await generateQrFromBarcode()
   }
 })
+
+async function generateQrFromBarcode() {
+  const code = member.value.barcode
+  if (!code) {
+    barcodeUrl.value = ''
+    return
+  }
+  try {
+    // 你想要多大可以調 width，80~160 都OK
+    barcodeUrl.value = await QRCode.toDataURL(String(code), {
+      width: 120,
+      margin: 1
+    })
+  } catch (err) {
+    console.error('QR code 產生失敗:', err)
+    barcodeUrl.value = ''
+  }
+}
 
 function useDateField(memberRef, field) {
   return computed({
@@ -204,7 +239,8 @@ async function onSubmit() {
       }
       alert('修改成功！')
     } else {
-      await createMember(member.value) //呼叫members後端的的create API
+      const res = await createMember(member.value) //呼叫members後端的的create API
+      console.log(res.data.barcode)
       alert('新增成功！')
     }
     router.push('/home')
@@ -255,11 +291,25 @@ function onCancel() {
   border: 1px solid #bbb;
   border-radius: 3px;
 }
-.qr-code {
-  width: 80px;
-  height: 80px;
+.qr-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.qr-image {
+  width: 96px;
+  height: 96px;
   border: 1px solid #ccc;
   background: #fff;
+}
+.qr-text {
+  font-size: 12px;
+  color: #555;
+}
+.qr-placeholder {
+  font-size: 12px;
+  color: #999;
 }
 .form-actions {
   margin-top: 28px;
