@@ -1,28 +1,5 @@
 <template>
   <div class="member-list-legacy">
-    <!-- <div class="header-bar" style="display:flex;">
-      <div style="width:max-content; align-items: center;">
-        <img src = "../../logo.svg" alt="淨土宗宗徽" style="height:200px;width:200px;"/>
-      </div>
-      <div style="width:max-content; margin:auto ">
-        <div style="position: relative;left: 50%;transform: translate(-50%, -100%);text-align: center; align-items: flex-start;">
-          <a style="font-size: 28px;">新店念佛會志工系統</a>
-        </div>
-        <div style="position: relative;left: 50%;transform: translate(-50%, 0%)">
-          <button class="btn" @click="onAdd">新增蓮友</button>
-          <button class="btn" @click="activity">本日活動</button>
-          <button class="btn" @click="manage">帳號管理</button>
-          <button class="btn" @click="logout">系統退出</button>
-        </div>
-      </div>
-      <div class="center-outer" style="height: max-content;">
-        <div class="button-panel">
-          <div><button>檔案匯出</button></div>
-          <div><button>篩選列印</button></div>
-          <div><button>條碼列印</button></div>
-        </div>
-      </div>
-    </div> -->
     <div style="text-align: center;margin-bottom: 35px;">
       <a style="font-size: 28px;margin-right: 35px;">會員列表：</a>
       <button class="btn" @click="fetchMembers">全體會員</button>

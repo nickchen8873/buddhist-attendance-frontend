@@ -1,7 +1,8 @@
 <template>
+    <div>
+      <button class="btn" @click="backToHome">回首頁</button>
+    </div> 
     <div class="attendance-panel">
-      <h2>本日活動出席</h2>
-  
       <!-- 上方只顯示日期 -->
       <div class="summary-row">
         <span>日期：{{ displayDate }}</span>
@@ -22,6 +23,18 @@
             </button>
         </div>
     </div>
+    <!-- <input
+      ref="scanInput"
+      v-model="scanText"
+      class="scan-input-hidden"
+      placeholder="請掃描 QR Code 或輸入條碼"
+      @keyup.enter="onScanSubmit"
+    /> -->
+
+        <!-- 🔽 QR Code 報到區塊 -->
+    <!-- <div style="margin-bottom: 16px;">
+      <CheckinScanner @checked-in="loadData" />
+    </div> -->
   
       <div v-if="loading" class="hint">載入中...</div>
       <div v-else-if="error" class="error">{{ error }}</div>
@@ -179,7 +192,8 @@
   </template>
   
   <script setup>
-  import { ref, onMounted, computed } from 'vue'
+  import CheckinScanner from '../components/CheckinScanner.vue'
+  import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
   import {
     fetchAttendancesByDate,
     createAttendance,
@@ -188,6 +202,7 @@
     checkinByKeyword
   } from '../api/attendance'
 import {getMembers} from '../api/member'
+import { useRouter } from 'vue-router'
   
   const attendances = ref([])
   const members = ref([])
@@ -196,7 +211,7 @@ import {getMembers} from '../api/member'
   const error = ref('')
 
   // 🔍 搜尋用關鍵字
-const searchKeyword = ref('')
+  const searchKeyword = ref('')
   
   // 今天日期字串（YYYY-MM-DD）
   const today = new Date()
@@ -208,12 +223,28 @@ const searchKeyword = ref('')
     '法師 1',
     '法師 2',
     '法師 3',
-    '蓮友 A',
-    '蓮友 B',
-    '香燈',
-    '看課'
+    '法師 4',
+    '蓮友 1',
+    '蓮友 2',
+    '蓮友 3',
+    '蓮友 4',
+    '家屬 1',
+    '家屬 2',
+    '家屬 3',
+    '家屬 4',
+    '看護 1',
+    '看護 2',
+    '看護 3',
+    '看護 4'
   ])
+
+  const scanInput = ref(null)
+  const scanText = ref('')
+
+  const synth = window.speechSynthesis || null
   
+  const router = useRouter()
+
   // 已出席者：用餐 / 不用餐
   const withMealList = computed(() =>
     attendances.value.filter(a => Boolean(a.with_meal))
@@ -264,6 +295,7 @@ const searchKeyword = ref('')
   const canMoveWithoutMealToWithMeal = computed(
     () => selected.value.type === 'withoutMeal'
   )
+  
   
   function formatTime(dt) {
     if (!dt) return ''
@@ -334,6 +366,50 @@ const searchKeyword = ref('')
     select('available', memberId)
     // 再呼叫既有的「移到用餐成員」流程
     moveAvailableToWithMeal()
+  }
+
+  function globalKeydownHandler(e) {
+    if (!scanInput.value) return
+
+    const active = document.activeElement
+    const tag = active?.tagName
+    const isTextInput =
+      tag === 'INPUT' ||
+      tag === 'TEXTAREA' ||
+      active?.isContentEditable
+
+    // 如果現在沒有在任何「可以打字的欄位」上，就幫忙把焦點拉回掃碼框
+    if (!isTextInput && active !== scanInput.value) {
+      scanInput.value.focus()
+    }
+  } 
+
+  function speak(text) {
+    if (!synth) return
+
+    // 建立要念的內容
+    const utter = new SpeechSynthesisUtterance(text)
+
+    // 優先找中文語音
+    const voices = synth.getVoices()
+    const zhVoice =
+      voices.find(v => v.lang && v.lang.toLowerCase().startsWith('zh')) ||
+      voices[0]
+
+    if (zhVoice) {
+      utter.voice = zhVoice
+    }
+
+    utter.rate = 1      // 語速
+    utter.pitch = 1     // 音高
+
+    // 先把前一次還沒講完的清掉，避免重疊
+    synth.cancel()
+    synth.speak(utter)
+  }
+
+  function backToHome() {
+    router.push('/home')
   }
   
   // 用餐成員  ◀  本次活動可設定成員（取消出席）
@@ -425,10 +501,56 @@ async function handleSearchCheckin() {
   } finally {
     submitting.value = false
   }
+
+  async function onScanSubmit() {
+    const code = scanText.value.trim()
+    if (!code) return
+
+    try {
+      const res = await checkinWithBarcode(code, true) // 第二個參數是預設 with_meal，可自行調整
+      const { duplicated, message } = res.data
+
+      if (duplicated) {
+        // 🔊 重複報到：講「重複報到」
+        speak('重複報到')
+        // 你也可以同時顯示訊息
+        console.log(message || '今日已完成報到')
+      } else {
+        // 🔊 第一次報到成功：講「報到成功」
+        speak('報到成功')
+        console.log(message || '報到成功')
+      }
+
+      // 如果你有今日清單，可以這時候刷新：
+      // await loadData()
+    } catch (err) {
+      console.error('checkin error:', err)
+      speak('報到失敗')
+      alert(
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err.message ||
+        '報到失敗'
+      )
+    } finally {
+      scanText.value = ''
+      scanInput.value?.focus()
+    }
+  }
 }
 
+    onMounted(() => {
+      loadData()
+      // 一進頁面，先讓掃描框拿到焦點
+      scanInput.value?.focus()
 
-  onMounted(loadData)
+      // 🔍 只要有按鍵事件，而且不是在其他輸入框上打字，就把焦點拉回掃碼框
+      // window.addEventListener('keydown', globalKeydownHandler, true)
+    })
+
+    onBeforeUnmount(() => {
+      // window.removeEventListener('keydown', globalKeydownHandler, true)
+    })
   </script>
   
   <style scoped>
@@ -616,6 +738,16 @@ async function handleSearchCheckin() {
     text-align: center;
     color: #888;
     font-size: 14px;
+  }
+
+  .scan-input-hidden {
+    position: absolute;
+    left: -9999px;    /* 移出螢幕外 */
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    border: 0;
+    padding: 0;
   }
   </style>
   

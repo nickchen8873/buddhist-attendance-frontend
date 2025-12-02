@@ -28,3 +28,13 @@ export function deleteAttendance(id) {
 export function checkinByKeyword(keyword) {
     return api.post('/attendances/checkin', { keyword })
 }
+
+// 用 barcode 報到（掃 QR 用）
+// 而後端有支援用 barcode 建立出席紀錄。
+export function checkinWithBarcode(barcode, withMeal = true) {
+    return api.post('/attendances', {
+      barcode,
+      with_meal: withMeal,
+      source: 'qr',   // 讓後端知道是從 QR 來的
+    })
+  }

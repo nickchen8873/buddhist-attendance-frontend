@@ -99,7 +99,7 @@ function  activity(){
           </div>
           <div style="position: relative;left: 50%;transform: translate(-50%, 0%)">
             <button class="btn" @click="onAdd">新增蓮友</button>
-            <button class="btn" @click="activity">本日活動</button>
+            <button class="btn" @click="activity">本日報到</button>
             <button class="btn" @click="manage">帳號管理</button>
             <button class="btn" @click="logout">系統退出</button>
           </div>
