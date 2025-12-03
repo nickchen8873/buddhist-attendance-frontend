@@ -7,37 +7,64 @@
         <div class="col">
           <div class="form-row">
             <label>查詢操作者帳號：</label>
-            <input v-model="user.username" readonly style="background:#f0f0f0"/>
+            <div class="field">
+              <input v-model="user.username" readonly style="background:#f0f0f0"/>
+            </div>
           </div>
+
           <div class="form-row">
             <label>姓名：</label>
-            <input v-model="member.name" required />
+            <div class="field">
+              <input v-model="member.name" />
+              <div class="error-text" v-if="errors.name">{{ errors.name }}</div>
+            </div>
           </div>
+
           <div class="form-row">
             <label>出生日期：</label>
-            <input v-model="birthday" type="date" />
+            <div class="field">
+              <input v-model="birthday" type="date" />
+              <div class="error-text" v-if="errors.birthday">{{ errors.birthday }}</div>
+            </div>
           </div>
+
           <div class="form-row">
             <label>到職日期：</label>
-            <input v-model="created_at" type="date" readonly style="background:#f0f0f0"/>
+            <div class="field">
+              <input v-model="created_at" type="date" readonly style="background:#f0f0f0"/>
+              <div class="error-text" v-if="errors.created_at">{{ errors.created_at }}</div>
+            </div>
           </div>
-          <div class="form-row">
+
+          <div class="form-row status-row">
             <label>狀態：</label>
-            <label><input type="radio" value="active" v-model="member.status" /> 在職</label>
-            <label><input type="radio" value="hidden" v-model="member.status" /> 隱藏</label>
-            <label><input type="radio" value="leave" v-model="member.status" /> 離職</label>
+            <div class="field">
+              <label><input type="radio" value="active" v-model="member.status" /> 在職</label>
+              <label><input type="radio" value="hidden" v-model="member.status" /> 隱藏</label>
+              <label><input type="radio" value="leave" v-model="member.status" /> 離職</label>
+            </div>
           </div>
+
           <div class="form-row">
             <label>手機號碼：</label>
-            <input v-model="member.phone" />
+            <div class="field">
+              <input v-model="member.phone" />
+              <div class="error-text" v-if="errors.phone">{{ errors.phone }}</div>
+            </div>
           </div>
+
           <div class="form-row">
             <label>居家地址：</label>
-            <input v-model="member.address" />
+            <div class="field">
+              <input v-model="member.address" />
+            </div>
           </div>
+
           <div class="form-row">
             <label>資訊備註：</label>
-            <input v-model="member.remark" />
+            <div class="field">
+              <input v-model="member.remark" />
+            </div>
           </div>
         </div>
 
@@ -45,51 +72,87 @@
         <div class="col">
           <div class="form-row">
             <label>密碼：</label>
-            <input v-model="user.password" type="password" :readonly="mode === 'create' || user.role !== 'admin'" :style="inputStyle"/>
+            <div class="field">
+              <input
+                v-model="user.password"
+                type="password"
+                :readonly="mode === 'create' || user.role !== 'admin'"
+                :style="inputStyle"
+              />
+            </div>
           </div>
+
           <div class="form-row" v-if="mode==='create'">
             <label>ID No.：</label>
-            <input :value="member.id" readonly style="background:#f0f0f0"/>
+            <div class="field">
+              <input :value="member.id" readonly style="background:#f0f0f0"/>
+            </div>
           </div>
+
           <div class="form-row">
             <label>法名：</label>
-            <input v-model="member.dharma_name" />
+            <div class="field">
+              <input v-model="member.dharma_name" />
+            </div>
           </div>
+
           <div class="form-row">
             <label>性別：</label>
-            <select v-model="member.gender">
-              <option value="F">女性</option>
-              <option value="M">男性</option>
-            </select>
+            <div class="field">
+              <select v-model="member.gender">
+                <option value="F">女性</option>
+                <option value="M">男性</option>
+              </select>
+              <div class="error-text" v-if="errors.gender">{{ errors.gender }}</div>
+            </div>
           </div>
+
           <div class="form-row">
             <label>組別：</label>
-            <input v-model="member.group" />
+            <div class="field">
+              <input v-model="member.group" />
+            </div>
           </div>
+
           <div class="form-row">
             <label>群組：</label>
-            <select v-model="member.role">
-              <option value="member">共修蓮友</option>
-              <option value="volunteer">志工幹部</option>
-              <option value="teacher">輔導法師</option>
-            </select>
+            <div class="field">
+              <select v-model="member.role">
+                <option value="member">共修蓮友</option>
+                <option value="volunteer">志工幹部</option>
+                <option value="teacher">輔導法師</option>
+              </select>
+              <div class="error-text" v-if="errors.role">{{ errors.role }}</div>
+            </div>
           </div>
+
           <div class="form-row" v-if="mode==='edit'">
             <label>離職日期：</label>
-            <input v-model="leave_date" type="date" />
+            <div class="field">
+              <input v-model="leave_date" type="date" />
+              <div class="error-text" v-if="errors.leave_date">{{ errors.leave_date }}</div>
+            </div>
           </div>
+
           <div class="form-row">
             <label>家用電話：</label>
-            <input v-model="member.telephone" />
+            <div class="field">
+              <input v-model="member.telephone" />
+              <div class="error-text" v-if="errors.telephone">{{ errors.telephone }}</div>
+            </div>
           </div>
+
           <div class="form-row" v-if="mode==='edit'">
             <label>ID No.：</label>
-            <input v-model="member.id" readonly style="background:#f0f0f0"/>
+            <div class="field">
+              <input v-model="member.id" readonly style="background:#f0f0f0"/>
+            </div>
           </div>
-          <!-- 🔽 顯示 QR Code -->
+
+          <!-- QR Code -->
           <div class="form-row" v-if="mode === 'edit'">
             <label>QR Code：</label>
-            <div class="qr-wrapper">
+            <div class="field qr-wrapper">
               <template v-if="barcodeUrl">
                 <img :src="barcodeUrl" alt="Member QR Code" class="qr-image" />
                 <div class="qr-text">條碼：{{ member.barcode }}</div>
@@ -101,6 +164,7 @@
           </div>
         </div>
       </div>
+
       <div class="form-actions">
         <button type="submit">{{ mode === 'edit' ? '儲存修改' : '新增' }}</button>
         <button type="button" @click="onCancel">取消</button>
@@ -109,19 +173,18 @@
   </div>
 </template>
 
+
 <script setup>
-import { ref, computed, onMounted, nextTick} from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import {createMember, getMember, updateMember, fetchMaxId} from '../api/member'
-import {useUserStore} from '../store/index'
+import { createMember, getMember, updateMember, fetchMaxId } from '../api/member'
 import { updateUser } from '../api/user'
 import QRCode from 'qrcode'
 
 const route = useRoute()
 const router = useRouter()
 const mode = route.name === 'edit' || route.path.includes('/edit') ? 'edit' : 'create'
-// 用來顯示「預估的下一筆 ID」（只在新建立員時顯示）
-// const nextId = ref(null)
+
 const user = ref({
   id: 0,
   username: '',
@@ -135,82 +198,87 @@ const member = ref({
   dharma_name: '',
   gender: 'F',
   phone: '',
-  birthday: '',
+  birthday: null,
   address: '',
   remark: '',
   status: 'active',
   role: 'member',
   group: '',
-  leave_date: '',
+  leave_date: null,
   telephone: '',
   barcode: '',
-  created_at: '',
+  created_at: null,
   created_by: '',
   updated_by: '',
-  updated_at: ''
+  updated_at: null
 })
 
 const barcodeUrl = ref('')
+
+// 驗證錯誤訊息
+const errors = ref({
+  name: '',
+  gender: '',
+  role: '',
+  created_at: '',
+  phone: '',
+  telephone: '',
+  birthday: '',
+  leave_date: ''
+})
 
 const birthday = useDateField(member, 'birthday')
 const leave_date = useDateField(member, 'leave_date')
 const created_at = useDateField(member, 'created_at')
 
-// 這三個欄位名稱陣列，未來要再加日期欄位直接 push 進去即可
-const dateFields = ['birthday', 'leave_date', 'created_at']
-
-// 產生「昨天」的 YYYY-MM-DD」字串的函數
-const getYesterdayString = () => {
-  const d = new Date()
-  d.setDate(d.getDate() - 1)
-  return d.toISOString().slice(0, 10)  // 2025-11-22
-}
-
 const inputStyle = computed(() => {
   return {
-    backgroundColor: mode === 'create' || user.value.role !== 'admin' ? '#f0f0f0' : 'white',
+    backgroundColor: mode === 'create' || user.value.role !== 'admin' ? '#f0f0f0' : 'white'
   }
 })
 
+// 產生「昨天」的 YYYY-MM-DD」字串
+const getYesterdayString = () => {
+  const d = new Date()
+  d.setDate(d.getDate() - 1)
+  return d.toISOString().slice(0, 10)
+}
+
 // 載入編輯資料
 onMounted(async () => {
-  const rawUserId = localStorage.getItem('userId');
+  const rawUserId = localStorage.getItem('userId') || ''
+  const rawUsername = localStorage.getItem('username') || ''
+  const rawRole = localStorage.getItem('role') || ''
+
   user.value.id = rawUserId.trim()
-
-  const rawUsername = localStorage.getItem('username');
   user.value.username = rawUsername.trim()
-
-  const rawRole = localStorage.getItem('role');
   user.value.role = rawRole.trim()
-  
   user.value.password = '      '
 
   if (mode === 'create') {
-    const { data } = await fetchMaxId();  // 先抓最大ID 
+    const { data } = await fetchMaxId()
     member.value = {
       ...member.value,
       id: data + 1
     }
-    await nextTick() // 先等畫面渲染完（確保 computed 已經註冊好）
-    created_at.value = getYesterdayString() // 直接用 computed 的 setter 賦值
+    await nextTick()
+    created_at.value = getYesterdayString()
   }
+
   if (mode === 'edit' && route.params.id) {
     const { data } = await getMember(route.params.id)
     Object.assign(member.value, data)
-
-    // ✅ 拿到 member 資料之後產生 QR code
     await generateQrFromBarcode()
   }
 })
 
-async function generateQrFromBarcode() {
+async function generateQrFromBarcode () {
   const code = member.value.barcode
   if (!code) {
     barcodeUrl.value = ''
     return
   }
   try {
-    // 你想要多大可以調 width，80~160 都OK
     barcodeUrl.value = await QRCode.toDataURL(String(code), {
       width: 120,
       margin: 1
@@ -221,7 +289,7 @@ async function generateQrFromBarcode() {
   }
 }
 
-function useDateField(memberRef, field) {
+function useDateField (memberRef, field) {
   return computed({
     get: () => memberRef.value[field]?.split('T')[0] ?? null,
     set: (val) => {
@@ -230,16 +298,89 @@ function useDateField(memberRef, field) {
   })
 }
 
-async function onSubmit() {
+// 表單驗證
+function validateForm () {
+  const e = {
+    name: '',
+    gender: '',
+    role: '',
+    created_at: '',
+    phone: '',
+    telephone: '',
+    birthday: '',
+    leave_date: ''
+  }
+
+  // 必填：姓名
+  if (!member.value.name || !member.value.name.trim()) {
+    e.name = '「姓名」為必填欄位'
+  }
+
+  // 必填：性別
+  if (!member.value.gender) {
+    e.gender = '「性別」為必選欄位'
+  }
+
+  // 必填：群組(role)
+  if (!member.value.role) {
+    e.role = '「群組」為必選欄位'
+  }
+
+  // 必填：到職日期
+  if (!created_at.value) {
+    e.created_at = '「到職日期」為必填欄位'
+  }
+
+  // 手機號碼：若有填，需為 09 開頭 + 10 碼數字
+  const phone = (member.value.phone || '').trim()
+  if (phone && !/^09\d{8}$/.test(phone)) {
+    e.phone = '手機號碼格式應為 09 開頭的 10 碼數字'
+  }
+
+  // 家用電話：若有填，只允許數字與 -，6~15 碼
+  const tel = (member.value.telephone || '').trim()
+  if (tel && !/^[0-9\-]{6,15}$/.test(tel)) {
+    e.telephone = '家用電話格式不正確（僅允許數字與「-」，長度 6~15 碼）'
+  }
+
+  // 日期相關檢查
+  const todayStr = new Date().toISOString().slice(0, 10)
+
+  if (birthday.value && birthday.value > todayStr) {
+    e.birthday = '出生日期不可晚於今天'
+  }
+
+  if (mode === 'edit' && leave_date.value) {
+    if (created_at.value && leave_date.value < created_at.value) {
+      e.leave_date = '離職日期不可早於到職日期'
+    } else if (leave_date.value > todayStr) {
+      e.leave_date = '離職日期不可晚於今天'
+    }
+  }
+
+  errors.value = e
+
+  const msgs = Object.values(e).filter(Boolean)
+  if (msgs.length > 0) {
+    alert('請先修正以下欄位：\n\n' + msgs.join('\n'))
+    return false
+  }
+  return true
+}
+
+async function onSubmit () {
   try {
+    // 先做前端驗證
+    if (!validateForm()) return
+
     if (mode === 'edit') {
-      await updateMember(member.value.id, member.value) //呼叫members後端的update API
-      if(user.value.password.trim() !== ''){
-        await updateUser(user.value.id,user.value) //呼叫User後端的update API
+      await updateMember(member.value.id, member.value)
+      if (user.value.password.trim() !== '') {
+        await updateUser(user.value.id, user.value)
       }
       alert('修改成功！')
     } else {
-      const res = await createMember(member.value) //呼叫members後端的的create API
+      const res = await createMember(member.value)
       console.log(res.data.barcode)
       alert('新增成功！')
     }
@@ -249,7 +390,7 @@ async function onSubmit() {
   }
 }
 
-function onCancel() {
+function onCancel () {
   router.back()
 }
 </script>
@@ -274,7 +415,7 @@ function onCancel() {
 }
 .form-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 12px;
 }
 .form-row label {
@@ -282,15 +423,27 @@ function onCancel() {
   text-align: right;
   margin-right: 12px;
   color: #224366;
+  padding-top: 4px;
+}
+.field {
+  flex: 1;
 }
 .form-row input,
 .form-row select {
-  flex: 1;
+  width: 100%;
   padding: 4px 8px;
   font-size: 15px;
   border: 1px solid #bbb;
   border-radius: 3px;
+  box-sizing: border-box;
 }
+.error-text {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #d32f2f;
+}
+
+/* QR Code 區域 */
 .qr-wrapper {
   display: flex;
   flex-direction: column;
@@ -311,6 +464,7 @@ function onCancel() {
   font-size: 12px;
   color: #999;
 }
+
 .form-actions {
   margin-top: 28px;
   text-align: center;
@@ -320,5 +474,25 @@ function onCancel() {
   padding: 6px 24px;
   font-size: 16px;
   border-radius: 4px;
+}
+
+/* 讓「狀態」這一列的第一個 label 仍然是欄位名稱，後面三個變成內聯排列的選項 */
+.status-row label {
+  width: auto;
+  text-align: left;
+  margin-right: 16px;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+/* 第一個 label（"狀態："）維持原本 90px 右對齊的欄位標題樣式 */
+.status-row label:first-child {
+  width: 90px;
+  text-align: right;
+  margin-right: 12px;
+}
+/* radio 和文字靠近一點 */
+.status-row input[type="radio"] {
+  margin-right: 4px;
 }
 </style>
