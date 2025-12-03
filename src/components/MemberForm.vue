@@ -179,17 +179,20 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { createMember, getMember, updateMember, fetchMaxId } from '../api/member'
 import { updateUser } from '../api/user'
+import { useUserStore } from '../store'
 import QRCode from 'qrcode'
 
 const route = useRoute()
 const router = useRouter()
 const mode = route.name === 'edit' || route.path.includes('/edit') ? 'edit' : 'create'
 
+const userStore = useUserStore()
+
 const user = ref({
-  id: 0,
-  username: '',
-  password: '',
-  role: ''
+  id: computed(() => userStore.userId),
+  username: computed(() => userStore.username),
+  password: '      ',
+  role: computed(() => userStore.role)
 })
 
 const member = ref({
@@ -246,14 +249,14 @@ const getYesterdayString = () => {
 
 // 載入編輯資料
 onMounted(async () => {
-  const rawUserId = localStorage.getItem('userId') || ''
-  const rawUsername = localStorage.getItem('username') || ''
-  const rawRole = localStorage.getItem('role') || ''
+  // const rawUserId = localStorage.getItem('userId') || ''
+  // const rawUsername = localStorage.getItem('username') || ''
+  // const rawRole = localStorage.getItem('role') || ''
 
-  user.value.id = rawUserId.trim()
-  user.value.username = rawUsername.trim()
-  user.value.role = rawRole.trim()
-  user.value.password = '      '
+  // user.value.id = rawUserId.trim()
+  // user.value.username = rawUsername.trim()
+  // user.value.role = rawRole.trim()
+  // user.value.password = '      '
 
   if (mode === 'create') {
     const { data } = await fetchMaxId()

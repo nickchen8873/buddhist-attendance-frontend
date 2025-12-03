@@ -1,3 +1,51 @@
+<template>
+  <div>
+    <header>
+      <!-- <div class="user-info">
+        {{ userStore.user.username }} {{ userStore.user.dharma_name }}，您好！
+        <button @click="handleLogout">登出</button><br>
+        登入時間: {{ new Date(userStore.user.last_login).toLocaleString() }}
+      </div> -->
+      <div class="header-bar" style="display:flex;">
+        <div style="width:max-content; align-items: center;">
+          <img src = "../../logo.svg" alt="淨土宗宗徽" style="height:200px;width:200px;"/>
+        </div>
+        <div style="width:max-content; margin:auto ">
+          <div style="position: relative;left: 50%;transform: translate(-50%, -100%);text-align: center; align-items: flex-start;">
+            <a style="font-size: 28px;">新店念佛會志工系統</a>
+          </div>
+          <div style="position: relative;left: 50%;transform: translate(-50%, 0%)">
+            <button class="btn" @click="onAdd">新增蓮友</button>
+            <button class="btn" @click="activity">本日報到</button>
+            <button class="btn" @click="manage">帳號管理</button>
+            <button class="btn" @click="handleLogout">系統退出</button>
+          </div>
+        </div>
+        <div class="center-outer" style="height: max-content;">
+          <div class="button-panel">
+            <div><button>檔案匯出</button></div>
+            <div><button>篩選列印</button></div>
+            <div><button>條碼列印</button></div>
+          </div>
+        </div>
+      </div>
+    </header>
+    
+    <!-- 以下可放首頁其他內容 -->
+    <MemberList
+      :members="members"
+      :onSearch="refresh"
+      :onAdd="onAdd"
+      :onEdit="onEdit"
+      :onDelete="onDelete"
+      :fetchMembers="fetchMembers"
+      :fetchRecent3Months="fetchRecent3Months"
+      @search="handleSearch"
+    />
+  </div>
+</template>
+
+
 <script setup>
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../store'
@@ -11,7 +59,7 @@ const members = ref([])
 
 const handleLogout = () => {
   userStore.logout()
-  router.push('/')
+  router.push('/login')
 }
 
 //撈資料的 function
@@ -81,52 +129,6 @@ function  activity(){
 }
 </script>
 
-<template>
-  <div>
-    <header>
-      <!-- <div class="user-info">
-        {{ userStore.user.username }} {{ userStore.user.dharma_name }}，您好！
-        <button @click="handleLogout">登出</button><br>
-        登入時間: {{ new Date(userStore.user.last_login).toLocaleString() }}
-      </div> -->
-      <div class="header-bar" style="display:flex;">
-        <div style="width:max-content; align-items: center;">
-          <img src = "../../logo.svg" alt="淨土宗宗徽" style="height:200px;width:200px;"/>
-        </div>
-        <div style="width:max-content; margin:auto ">
-          <div style="position: relative;left: 50%;transform: translate(-50%, -100%);text-align: center; align-items: flex-start;">
-            <a style="font-size: 28px;">新店念佛會志工系統</a>
-          </div>
-          <div style="position: relative;left: 50%;transform: translate(-50%, 0%)">
-            <button class="btn" @click="onAdd">新增蓮友</button>
-            <button class="btn" @click="activity">本日報到</button>
-            <button class="btn" @click="manage">帳號管理</button>
-            <button class="btn" @click="logout">系統退出</button>
-          </div>
-        </div>
-        <div class="center-outer" style="height: max-content;">
-          <div class="button-panel">
-            <div><button>檔案匯出</button></div>
-            <div><button>篩選列印</button></div>
-            <div><button>條碼列印</button></div>
-          </div>
-        </div>
-      </div>
-    </header>
-    
-    <!-- 以下可放首頁其他內容 -->
-    <MemberList
-      :members="members"
-      :onSearch="refresh"
-      :onAdd="onAdd"
-      :onEdit="onEdit"
-      :onDelete="onDelete"
-      :fetchMembers="fetchMembers"
-      :fetchRecent3Months="fetchRecent3Months"
-      @search="handleSearch"
-    />
-  </div>
-</template>
 
 <style scoped>
 .user-info {
