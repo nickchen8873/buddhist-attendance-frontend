@@ -6,7 +6,10 @@
         <!-- 左欄 -->
         <div class="col">
           <div class="form-row">
-            <label>查詢操作者帳號：</label>
+            <label class="label-operator">
+              登入帳號：
+              <!-- <span>查詢操作者帳號</span> -->
+            </label>
             <div class="field">
               <input v-model="user.username" readonly style="background:#f0f0f0"/>
             </div>
@@ -479,23 +482,53 @@ function onCancel () {
   border-radius: 4px;
 }
 
-/* 讓「狀態」這一列的第一個 label 仍然是欄位名稱，後面三個變成內聯排列的選項 */
-.status-row label {
+/* 狀態那一行：維持左邊欄位標題靠右，radio 選項橫向排列 */
+.status-row {
+  align-items: center;
+}
+
+.status-row > label {
+  /* 使用 .form-row label 的預設樣式：width:90px; text-align:right; */
+}
+
+.status-row .field {
+  display: flex;
+  align-items: center;
+  gap: 16px; /* 在職 / 隱藏 / 離職 之間的間距 */
+}
+
+.status-row .field label {
   width: auto;
-  text-align: left;
-  margin-right: 16px;
+  margin-right: 0;
   display: inline-flex;
   align-items: center;
   white-space: nowrap;
 }
-/* 第一個 label（"狀態："）維持原本 90px 右對齊的欄位標題樣式 */
-.status-row label:first-child {
-  width: 90px;
-  text-align: right;
-  margin-right: 12px;
-}
-/* radio 和文字靠近一點 */
-.status-row input[type="radio"] {
+
+.status-row .field input[type="radio"] {
   margin-right: 4px;
 }
+
+/* 查詢操作者帳號 專用 label */
+/* .label-operator {
+  position: relative;
+  overflow: visible;      
+  white-space: nowrap;    
+} */
+
+/* 把「查詢操作者帳號」這串字整體往左移一點 */
+/* .label-operator span {
+  display: inline-block;
+  margin-left: -32px;     
+} */
+
+/* 在 label 的最右側畫出冒號，位置跟其他欄位對齊 */
+/* .label-operator::after {
+  content: '：';
+  position: absolute;
+  right: 0;               
+  top: 4px;               
+} */
+
+
 </style>
