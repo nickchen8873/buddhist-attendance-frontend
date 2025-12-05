@@ -20,7 +20,13 @@ const routes = [
     path: '/attendance/today',
     name: 'attendance-today',
     component: () => import('../views/TodayAttendance.vue')
+  },
+  {
+    path: '/members/:id/qr-print',
+    name: 'member-qr-print',
+    component: () => import('../components/MemberQrPrint.vue')
   }
+
 ]
 
 const router = createRouter({

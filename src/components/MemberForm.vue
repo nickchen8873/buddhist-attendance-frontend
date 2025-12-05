@@ -1,4 +1,31 @@
 <template>
+  <header>
+    <!-- <div class="user-info">
+      {{ userStore.user.username }} {{ userStore.user.dharma_name }}，您好！
+      <button @click="handleLogout">登出</button><br>
+      登入時間: {{ new Date(userStore.user.last_login).toLocaleString() }}
+    </div> -->
+    <div class="header-bar" style="display:flex;">
+      <div style="width:max-content; align-items: center;">
+        <img src = "../../logo.svg" alt="淨土宗宗徽" style="height:200px;width:200px;"/>
+      </div>
+      <div style="width:max-content; margin:auto ">
+        <div style="position: relative;left: 50%;transform: translate(-50%, -100%);text-align: center; align-items: flex-start;">
+          <a style="font-size: 28px;">新店念佛會志工系統</a>
+        </div>
+        <div style="position: relative;left: 50%;transform: translate(-50%, 0%)">
+          <button class="btn" @click="onAdd">新增蓮友</button>
+          <button class="btn" @click="activity">本日報到</button>
+          <button class="btn" @click="handleLogout">系統退出</button>
+        </div>
+      </div>
+      <div class="center-outer" style="height: max-content;">
+        <div class="button-panel" @click="$router.push({ name: 'member-qr-print', params: { id: member.id } })">
+          <div><button>條碼列印</button></div>
+        </div>
+      </div>
+    </div>
+  </header>
   <div class="member-form-panel">
     <h2>{{ mode === 'edit' ? '編輯成員資料' : '新增成員資料' }}</h2>
     <form @submit.prevent="onSubmit">
@@ -399,9 +426,41 @@ async function onSubmit () {
 function onCancel () {
   router.back()
 }
+
 </script>
 
 <style scoped>
+button {
+  margin-left: 10px;
+}
+.btn {
+  font-size: 18px;
+  background: #d0e6d8;
+  border: 1.5px solid #5b7b72;
+  padding: 8px 24px;
+  border-radius: 6px;
+  margin-right: 12px;
+  cursor: pointer;
+}
+.button-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 5px;
+  padding: 10px;
+  width: 120px;
+}
+.button-panel > div {
+  margin: 8px 0;
+}
+.button-panel button {
+  width: 110%;
+  border-radius: 2px;
+  padding: 8px 0;
+  font-size: 18px;
+  background-color: #fdc92d;
+  cursor: pointer;
+}
 .member-form-panel {
   max-width: 1000px;
   background: #f7fafb;
