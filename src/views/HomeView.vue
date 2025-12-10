@@ -25,7 +25,7 @@
           <div class="button-panel">
             <div><button>檔案匯出</button></div>
             <div><button>篩選列印</button></div>
-            <div><button>條碼列印</button></div>
+            <div><button @click="enterQrBatchPrint">條碼列印</button></div>
           </div>
         </div>
       </div>
@@ -41,6 +41,7 @@
       :fetchMembers="fetchMembers"
       :fetchRecent3Months="fetchRecent3Months"
       @search="handleSearch"
+      @syncSeletedId="syncSeletedId"
     />
   </div>
 </template>
@@ -56,6 +57,7 @@ import { ref, onMounted } from 'vue'
 const userStore = useUserStore()
 const router = useRouter()
 const members = ref([])
+let selectedIds = ref([])
 
 const handleLogout = () => {
   userStore.logout()
@@ -103,6 +105,11 @@ const handleSearch = async (payload = '') => {
   }
 }
 
+//更新選中MemberList元件裡選中的Member
+const syncSeletedId = async (payload = '') => {
+  selectedIds.value = [...new Set(payload)]
+}
+
 onMounted(async () => {
   fetchMembers()
 })
@@ -124,8 +131,13 @@ function onDelete(member) {
     deleteMember(member.id).then(refresh(null))
   }
 }
-function  activity(){
+function activity(){
   router.push('/attendance/today')
+}
+
+function enterQrBatchPrint(){
+  const idsParam = selectedIds.value.join(',')
+  router.push({ name: 'member-qr-batch', query: { ids: idsParam } })
 }
 </script>
 

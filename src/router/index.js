@@ -25,8 +25,12 @@ const routes = [
     path: '/members/:id/qr-print',
     name: 'member-qr-print',
     component: () => import('../components/MemberQrPrint.vue')
+  },
+  {
+    path: '/members/qr-batch',
+    name: 'member-qr-batch',
+    component: () => import('../views/MemberQrBatchPrint.vue')
   }
-
 ]
 
 const router = createRouter({

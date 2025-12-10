@@ -32,7 +32,7 @@
       </thead>
       <tbody>
         <tr v-for="m in members" :key="m.id" @dblclick="onEdit(m)" style="cursor: pointer;">
-          <td><input type="checkbox" v-model="selected" :value="m.id" /></td>
+          <td><input type="checkbox" v-model="selectedIds" :value="m.id" /></td>
           <td>{{ m.id }}</td>
           <td>{{ m.group }}</td>
           <td>{{ m.name }}</td>
@@ -67,17 +67,22 @@ import {getMembers} from '../api/member'
 
 defineProps(['members', 'onAdd', 'onEdit', 'onDelete', 'fetchMembers', 'fetchRecent3Months',])
 
-const selectAll = ref(false)
-const selected = ref([])
-const keyword = ref('')
-const emit = defineEmits(['search']);
+let selectAll = ref(false)
+let selectedIds = ref([])
+let keyword = ref('')
+let emit = defineEmits(['search']);
 
 watch(selectAll, val => {
   if (val) {
-    selected.value = (Array.isArray(members) ? members.map(m => m.id) : [])
+    selectedIds.value = (Array.isArray(members) ? members.map(m => m.id) : [])
   } else {
-    selected.value = []
+    selectedIds.value = []
   }
+})
+
+// 只要 selectedIds 一變動，就自動發送給父元件
+watch(selectedIds, (newVal) => {
+  emit('syncSeletedId', newVal)
 })
 
 function toggleSelectAll() {
@@ -110,6 +115,16 @@ function showAddress(member) {
 function SendKeywordToParent() {
   emit('search', keyword.value)
 }
+
+// function SendSeletedIdToParent(selectedId) {
+//   let selectedIds = []
+
+//   if (selectedIds.value.length !== 0) {
+//     selectedIds = selectedIds.value
+//   }
+//   selectedIds.push(selectedId)
+//   emit('syncSeletedId', selectedIds)
+// }
 </script>
 
 <style scoped>
