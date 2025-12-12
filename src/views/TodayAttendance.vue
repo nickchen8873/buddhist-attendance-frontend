@@ -1,7 +1,11 @@
 <template>
-    <div>
-      <button class="btn" @click="backToHome">回首頁</button>
-    </div> 
+    <div class="top-actions">
+      <button class="home-btn" @click="backToHome">
+        <span class="home-btn__icon">←</span>
+        回首頁
+      </button>
+    </div>
+
     <div class="attendance-panel">
       <!-- 上方只顯示日期 -->
       <div class="summary-row">
@@ -271,24 +275,14 @@ import { useRouter } from 'vue-router'
   const displayDate = computed(() => dateString)
   
   // 非成員設定：暫時用靜態資料，你之後可以改從 DB 撈
-  const nonMemberSlots = ref([
-    '法師 1',
-    '法師 2',
-    '法師 3',
-    '法師 4',
-    '蓮友 1',
-    '蓮友 2',
-    '蓮友 3',
-    '蓮友 4',
-    '家屬 1',
-    '家屬 2',
-    '家屬 3',
-    '家屬 4',
-    '看護 1',
-    '看護 2',
-    '看護 3',
-    '看護 4'
-  ])
+  const nonMemberSlotsMaster = [
+  '法師 1','法師 2','法師 3','法師 4',
+  '蓮友 1','蓮友 2','蓮友 3','蓮友 4',
+  '家屬 1','家屬 2','家屬 3','家屬 4',
+  '看護 1','看護 2','看護 3','看護 4'
+  ]
+
+  const nonMemberSlots = ref([...nonMemberSlotsMaster])
 
   // (目前沒有使用此功能)
   // const scanInput = ref(null)
@@ -335,6 +329,57 @@ import { useRouter } from 'vue-router'
   function isSelected(type, id) {
     return selected.value.type === type && selected.value.id === id
   }
+
+  function getAnonLabel(att) {
+  // 只針對匿名報到（guest）
+  if (!att) return ''
+  if (att.member_id != null) return ''      // 記名的不要算名額
+  if (att.source !== 'guest') return ''     // 只有 guest 才占名額
+  return String(att.guest_name || '').trim()
+}
+
+
+function restoreNonMemberSlot(label) {
+  if (!label) return
+  if (nonMemberSlots.value.includes(label)) return
+
+  const masterIdx = nonMemberSlotsMaster.indexOf(label)
+
+  // 不在 master（例如你未來允許自訂）→ 直接加到尾端
+  if (masterIdx === -1) {
+    nonMemberSlots.value.push(label)
+    return
+  }
+
+  // 插回「原本的排序位置」
+  let insertAt = nonMemberSlots.value.length
+  for (let i = 0; i < nonMemberSlots.value.length; i++) {
+    const cur = nonMemberSlots.value[i]
+    const curIdx = nonMemberSlotsMaster.indexOf(cur)
+    if (curIdx !== -1 && curIdx > masterIdx) {
+      insertAt = i
+      break
+    }
+  }
+  nonMemberSlots.value.splice(insertAt, 0, label)
+}
+
+function rebuildNonMemberSlotsFromAttendances() {
+  const used = new Set()
+
+  for (const a of attendances.value || []) {
+    const label = getAnonLabel(a)
+    if (!label) continue
+
+    // 只把「剛好是名額表中的名稱」視為被占用名額
+    if (nonMemberSlotsMaster.includes(label)) {
+      used.add(label)
+    }
+  }
+
+  nonMemberSlots.value = nonMemberSlotsMaster.filter(x => !used.has(x))
+}
+
   
   // ---- 控制按鈕是否可用 ----
   const canMoveAvailableToWithMeal = computed(
@@ -382,6 +427,9 @@ import { useRouter } from 'vue-router'
       ])
       attendances.value = attRes.data || []
       members.value = memRes.data || []
+
+      // ✅ 讓非成員名額永遠和今日匿名出席同步（刷新也不會回來）
+      rebuildNonMemberSlotsFromAttendances()
     } catch (e) {
       console.error(e)
       error.value =
@@ -475,25 +523,34 @@ import { useRouter } from 'vue-router'
   
   // 用餐成員  ◀  本次活動可設定成員（取消出席）
   async function moveWithMealToAvailable() {
-    if (!canMoveWithMealToAvailable.value || submitting.value) return
-    const att = withMealList.value.find(a => a.id === selected.value.id)
-    if (!att) return
-  
-    submitting.value = true
-    try {
-      await deleteAttendance(att.id)
-      await loadData()
-      selected.value = { type: null, id: null }
-    } catch (e) {
-      console.error(e)
-      alert(
-        '取消出席失敗：' +
-          (e?.response?.data?.message || e?.message || '未知錯誤')
-      )
-    } finally {
-      submitting.value = false
+  if (!canMoveWithMealToAvailable.value || submitting.value) return
+  const att = withMealList.value.find(a => a.id === selected.value.id)
+  if (!att) return
+
+  const anonLabel = getAnonLabel(att) // ✅ 先記起來（若是匿名就會有值）
+
+  submitting.value = true
+  try {
+    await deleteAttendance(att.id)
+
+    // ✅ 若是匿名名額，立刻塞回去（不等 loadData 也會立刻看到）
+    if (anonLabel && nonMemberSlotsMaster.includes(anonLabel)) {
+      restoreNonMemberSlot(anonLabel)
     }
+
+    await loadData()
+    selected.value = { type: null, id: null }
+  } catch (e) {
+    console.error(e)
+    alert(
+      '取消出席失敗：' +
+        (e?.response?.data?.message || e?.message || '未知錯誤')
+    )
+  } finally {
+    submitting.value = false
   }
+}
+
   
   // 用餐成員  ▶  不用餐成員（with_meal: true -> false）
   async function moveWithMealToWithoutMeal() {
@@ -918,6 +975,53 @@ async function loadLastWeekList() {
   .last-week-column {
     flex: 0 0 230px;  /* 視覺上比較像示意圖，可自行調整或乾脆拿掉這行 */
   }
+
+  .top-actions{
+  max-width: 1300px;   /* 跟 .attendance-panel 一樣寬 */
+  margin: 18px 165px 0;
+  padding: 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.home-btn{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  background: #224366;
+  color: #fff;
+  border: 1px solid #18324d;
+  border-radius: 10px;
+
+  padding: 10px 16px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+
+  box-shadow: 0 6px 16px rgba(34, 67, 102, 0.25);
+  cursor: pointer;
+  user-select: none;
+
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+}
+.home-btn:hover{
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(34, 67, 102, 0.28);
+}
+.home-btn:active{
+  transform: translateY(0px);
+  box-shadow: 0 6px 16px rgba(34, 67, 102, 0.22);
+}
+.home-btn:focus-visible{
+  outline: 3px solid rgba(34, 67, 102, 0.25);
+  outline-offset: 2px;
+}
+.home-btn__icon{
+  font-size: 18px;
+  line-height: 1;
+}
 
   </style>
   
