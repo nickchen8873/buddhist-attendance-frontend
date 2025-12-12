@@ -23,6 +23,7 @@
             </button>
         </div>
     </div>
+    <!-- (目前沒有使用此功能) -->
     <!-- <input
       ref="scanInput"
       v-model="scanText"
@@ -50,6 +51,7 @@
               v-for="(item, index) in nonMemberSlots"
               :key="index"
               class="member-item"
+              @dblclick="handleNonMemberDblClick(item, index)"
             >
               <span class="name">{{ item }}</span>
             </li>
@@ -75,7 +77,7 @@
               @dblclick="handleAvailableDblClick(item.id)"
             >
               <span class="index">{{ index + 1 }}.</span>
-              <span class="name">{{ item.name }}</span>
+              <span class="name">{{ item.name || item.guest_name }}</span>
               <span v-if="item.dharma_name" class="dharma">
                 （{{ item.dharma_name }}）
               </span>
@@ -125,7 +127,7 @@
               @click="select('withMeal', item.id)"
             >
               <span class="index">{{ index + 1 }}.</span>
-              <span class="name">{{ item.name }}</span>
+              <span class="name">{{ item.name || item.guest_name }}</span>
               <span v-if="item.dharma_name" class="dharma">
                 （{{ item.dharma_name }}）
               </span>
@@ -173,7 +175,7 @@
               @click="select('withoutMeal', item.id)"
             >
               <span class="index">{{ index + 1 }}.</span>
-              <span class="name">{{ item.name }}</span>
+              <span class="name">{{ item.name || item.guest_name }}</span>
               <span v-if="item.dharma_name" class="dharma">
                 （{{ item.dharma_name }}）
               </span>
@@ -187,6 +189,49 @@
             </li>
           </ul>
         </div>
+
+        <!-- 🔹 上週同日出席名單 -->
+        <div class="column last-week-column">
+          <div class="column-header">
+            <span>
+              上週
+              <span v-if="lastWeekDisplayDate">{{ lastWeekDisplayDate }}</span>
+              <span v-else>同日</span>
+              出席名單
+            </span>
+            <span>{{ lastWeekList.length }} 人</span>
+          </div>
+
+          <ul class="member-list">
+            <li v-if="lastWeekLoading" class="empty">
+              上週名單載入中…
+            </li>
+            <li v-else-if="lastWeekError" class="empty">
+              {{ lastWeekError }}
+            </li>
+            <template v-else>
+              <li
+                v-for="(item, index) in lastWeekList"
+                :key="item.attendance_id || item.id"
+                class="member-item"
+                @dblclick="handleLastWeekDblClick(item)"
+              >
+                <span class="index">{{ index + 1 }}.</span>
+                <span class="name">{{ item.name || item.guest_name }}</span>
+                <span v-if="item.dharma_name" class="dharma">
+                  （{{ item.dharma_name }}）
+                </span>
+                <span v-if="item.group" class="group">
+                  · {{ item.group }}
+                </span>
+              </li>
+              <li v-if="lastWeekList.length === 0" class="empty">
+                上週同日無出席紀錄
+              </li>
+            </template>
+          </ul>
+        </div>
+
       </div>
     </div>
   </template>
@@ -199,7 +244,8 @@
     createAttendance,
     updateAttendanceMeal,
     deleteAttendance,
-    checkinByKeyword
+    checkinByKeyword,
+    fetchLastWeekAttendances
   } from '../api/attendance'
 import {getMembers} from '../api/member'
 import { useRouter } from 'vue-router'
@@ -209,6 +255,12 @@ import { useRouter } from 'vue-router'
   const loading = ref(false)
   const submitting = ref(false)
   const error = ref('')
+
+  // 上週同日出席名單
+  const lastWeekList = ref([])
+  const lastWeekTargetDate = ref('')   // 後端回傳的 targetDate (YYYY-MM-DD)
+  const lastWeekLoading = ref(false)
+  const lastWeekError = ref('')
 
   // 🔍 搜尋用關鍵字
   const searchKeyword = ref('')
@@ -238,8 +290,10 @@ import { useRouter } from 'vue-router'
     '看護 4'
   ])
 
-  const scanInput = ref(null)
-  const scanText = ref('')
+  // (目前沒有使用此功能)
+  // const scanInput = ref(null)
+  // (目前沒有使用此功能)
+  // const scanText = ref('')
 
   const synth = window.speechSynthesis || null
   
@@ -296,6 +350,12 @@ import { useRouter } from 'vue-router'
     () => selected.value.type === 'withoutMeal'
   )
   
+  const lastWeekDisplayDate = computed(() => {
+    if (!lastWeekTargetDate.value) return ''
+    // '2025-12-02' -> '2025/12/02'
+    return lastWeekTargetDate.value.replace(/-/g, '/')
+  })
+
   
   function formatTime(dt) {
     if (!dt) return ''
@@ -368,21 +428,22 @@ import { useRouter } from 'vue-router'
     moveAvailableToWithMeal()
   }
 
-  function globalKeydownHandler(e) {
-    if (!scanInput.value) return
+  // (目前沒有使用此功能)
+  // function globalKeydownHandler(e) {
+  //   if (!scanInput.value) return
 
-    const active = document.activeElement
-    const tag = active?.tagName
-    const isTextInput =
-      tag === 'INPUT' ||
-      tag === 'TEXTAREA' ||
-      active?.isContentEditable
+  //   const active = document.activeElement
+  //   const tag = active?.tagName
+  //   const isTextInput =
+  //     tag === 'INPUT' ||
+  //     tag === 'TEXTAREA' ||
+  //     active?.isContentEditable
 
-    // 如果現在沒有在任何「可以打字的欄位」上，就幫忙把焦點拉回掃碼框
-    if (!isTextInput && active !== scanInput.value) {
-      scanInput.value.focus()
-    }
-  } 
+  //   // 如果現在沒有在任何「可以打字的欄位」上，就幫忙把焦點拉回掃碼框
+  //   if (!isTextInput && active !== scanInput.value) {
+  //     scanInput.value.focus()
+  //   }
+  // } 
 
   function speak(text) {
     if (!synth) return
@@ -501,48 +562,117 @@ async function handleSearchCheckin() {
   } finally {
     submitting.value = false
   }
+}
 
-  async function onScanSubmit() {
-    const code = scanText.value.trim()
-    if (!code) return
-
+async function loadLastWeekList() {
+    lastWeekLoading.value = true
+    lastWeekError.value = ''
     try {
-      const res = await checkinWithBarcode(code, true) // 第二個參數是預設 with_meal，可自行調整
-      const { duplicated, message } = res.data
-
-      if (duplicated) {
-        // 🔊 重複報到：講「重複報到」
-        speak('重複報到')
-        // 你也可以同時顯示訊息
-        console.log(message || '今日已完成報到')
-      } else {
-        // 🔊 第一次報到成功：講「報到成功」
-        speak('報到成功')
-        console.log(message || '報到成功')
-      }
-
-      // 如果你有今日清單，可以這時候刷新：
-      // await loadData()
-    } catch (err) {
-      console.error('checkin error:', err)
-      speak('報到失敗')
-      alert(
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        err.message ||
-        '報到失敗'
-      )
+      const res = await fetchLastWeekAttendances(dateString)
+      const payload = res.data || {}
+      lastWeekList.value = payload.data || []
+      lastWeekTargetDate.value = payload.targetDate || ''
+    } catch (e) {
+      console.error(e)
+      lastWeekError.value =
+        e?.response?.data?.message ||
+        e?.response?.data?.error ||
+        e?.message ||
+        '上週同日出席名單載入失敗'
+      lastWeekList.value = []
+      lastWeekTargetDate.value = ''
     } finally {
-      scanText.value = ''
-      scanInput.value?.focus()
+      lastWeekLoading.value = false
     }
   }
-}
+
+  // 從「上週同日出席名單」雙擊帶入今天報到
+  async function handleLastWeekDblClick(item) {
+    if (submitting.value) return
+
+    // 從上週資料取出 member_id（若後端同時給 member.id 也順便兼容）
+    const memberId = item.member_id || item.id
+    if (!memberId) return
+
+    // 若今天已經有這個人的出席紀錄，就不再重複新增
+    const alreadyCheckedIn = attendances.value.some(
+      a => String(a.member_id) === String(memberId)
+    )
+    if (alreadyCheckedIn) {
+      alert('此成員今日已在出席名單中。')
+      return
+    }
+
+    submitting.value = true
+    try {
+      // 沿用上週的用餐狀態，若沒有就預設 true
+      const withMeal = typeof item.with_meal === 'boolean'
+        ? item.with_meal
+        : true
+
+      await createAttendance({
+        member_id: memberId,
+        with_meal: withMeal,
+        source: 'last_week',  // 可讓你之後在後端區分來源
+      })
+
+      // 重新載入今日資料（用餐 / 不用餐 / 可設定成員）
+      await loadData()
+    } catch (e) {
+      console.error(e)
+      alert(
+        '從上週名單帶入失敗：' +
+          (e?.response?.data?.message || e?.message || '未知錯誤')
+      )
+    } finally {
+      submitting.value = false
+    }
+  }
+
+
+  // (目前沒有使用此功能)
+//   async function onScanSubmit() {
+//     const code = scanText.value.trim()
+//     if (!code) return
+
+//     try {
+//       const res = await checkinWithBarcode(code, true) // 第二個參數是預設 with_meal，可自行調整
+//       const { duplicated, message } = res.data
+
+//       if (duplicated) {
+//         // 🔊 重複報到：講「重複報到」
+//         speak('重複報到')
+//         // 你也可以同時顯示訊息
+//         console.log(message || '今日已完成報到')
+//       } else {
+//         // 🔊 第一次報到成功：講「報到成功」
+//         speak('報到成功')
+//         console.log(message || '報到成功')
+//       }
+
+//       // 如果你有今日清單，可以這時候刷新：
+//       // await loadData()
+//     } catch (err) {
+//       console.error('checkin error:', err)
+//       speak('報到失敗')
+//       alert(
+//         err?.response?.data?.message ||
+//         err?.response?.data?.error ||
+//         err.message ||
+//         '報到失敗'
+//       )
+//     } finally {
+//       scanText.value = ''
+//       scanInput.value?.focus()
+//     }
+//   }
+// }
 
     onMounted(() => {
       loadData()
-      // 一進頁面，先讓掃描框拿到焦點
-      scanInput.value?.focus()
+      loadLastWeekList()
+      // (目前沒有使用此功能) 一進頁面，先讓掃描框拿到焦點
+      // scanInput.value?.focus()
 
       // 🔍 只要有按鍵事件，而且不是在其他輸入框上打字，就把焦點拉回掃碼框
       // window.addEventListener('keydown', globalKeydownHandler, true)
@@ -551,6 +681,41 @@ async function handleSearchCheckin() {
     onBeforeUnmount(() => {
       // window.removeEventListener('keydown', globalKeydownHandler, true)
     })
+
+      // 非成員設定：雙擊建立匿名出席
+  async function handleNonMemberDblClick(label, index) {
+    if (submitting.value) return
+
+    // 如果你希望「同一格只記錄一次」，可以先檢查今天是否已經有同名 guest
+    const alreadyExists = attendances.value.some(
+      a => !a.member_id && a.guest_name === label && a.with_meal
+    )
+    if (alreadyExists) {
+      alert(`${label} 今日已在用餐名單中`)
+      return
+    }
+
+    submitting.value = true
+    try {
+      await createAttendance({
+        with_meal: true,
+        source: 'guest',
+        guest_name: label,
+        guest_type: '非成員', // 或根據 label 去對應 '法師', '家屬', '看護'...
+      })
+
+      await loadData()   // 重新撈今日出席，右邊用餐欄位就會多出這一筆
+    } catch (e) {
+      console.error(e)
+      alert(
+        '匿名報到失敗：' +
+          (e?.response?.data?.message || e?.message || '未知錯誤')
+      )
+    } finally {
+      submitting.value = false
+    }
+  }
+
   </script>
   
   <style scoped>
@@ -749,5 +914,10 @@ async function handleSearchCheckin() {
     border: 0;
     padding: 0;
   }
+
+  .last-week-column {
+    flex: 0 0 230px;  /* 視覺上比較像示意圖，可自行調整或乾脆拿掉這行 */
+  }
+
   </style>
   

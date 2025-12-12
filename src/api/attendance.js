@@ -29,12 +29,25 @@ export function checkinByKeyword(keyword) {
     return api.post('/attendances/checkin', { keyword })
 }
 
-// 用 barcode 報到（掃 QR 用）
-// 而後端有支援用 barcode 建立出席紀錄。
+// (目前沒有使用此功能)開相機掃 QR Code用
 export function checkinWithBarcode(barcode, withMeal = true) {
     return api.post('/attendances', {
       barcode,
       with_meal: withMeal,
       source: 'qr',   // 讓後端知道是從 QR 來的
     })
-  }
+}
+
+export function fetchLastWeekList(dateStr) {
+  return axios.get('/api/attendance/last-week', {
+    params: { date: dateStr }  // e.g. '2025-12-09'
+  });
+}
+
+// 取得「上週同日出席名單」
+export function fetchLastWeekAttendances(date) {
+  // date 格式：'YYYY-MM-DD'
+  return api.get('/attendances/last-week', {
+    params: { date },
+  })
+}

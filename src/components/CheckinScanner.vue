@@ -64,6 +64,9 @@
   
   const synth = window.speechSynthesis || null
 
+  const selectedDate = '2025-12-09'; // 報到當天的日期
+  const { data } = await fetchLastWeekList(selectedDate);
+
   function speak(text) {
     if (!synth) return
 
@@ -88,7 +91,7 @@
     synth.speak(utter)
   }
 
-  // 啟動相機 + 掃描
+  // 啟動相機 + 掃描(目前沒有使用此功能)
   async function startScanner() {
     if (isScanning.value || starting.value) return
   
