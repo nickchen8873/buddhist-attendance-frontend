@@ -24,7 +24,7 @@
         <div class="center-outer" style="height: max-content;">
           <div class="button-panel">
             <div><button @click="exportMembersXlsx">檔案匯出</button></div>
-            <div><button>篩選列印</button></div>
+            <!-- <div><button>篩選列印</button></div> -->
             <div><button @click="enterQrBatchPrint">條碼列印</button></div>
           </div>
         </div>
