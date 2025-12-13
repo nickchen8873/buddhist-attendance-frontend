@@ -7,7 +7,7 @@
     </div> -->
     <div class="header-bar" style="display:flex;">
       <div style="width:max-content; align-items: center;">
-        <img src = "../../logo.svg" alt="淨土宗宗徽" style="height:200px;width:200px;"/>
+        <img :src="logoUrl" alt="淨土宗宗徽" style="height:200px;width:200px;"/>
       </div>
       <div style="width:max-content; margin:auto ">
         <div style="position: relative;left: 50%;transform: translate(-50%, -100%);text-align: center; align-items: flex-start;">
@@ -211,6 +211,7 @@ import { createMember, getMember, updateMember, fetchMaxId } from '../api/member
 import { updateUser } from '../api/user'
 import { useUserStore } from '../store'
 import QRCode from 'qrcode'
+import logoUrl from '../assets/logo.svg'
 
 const route = useRoute()
 const router = useRouter()
