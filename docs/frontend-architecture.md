@@ -142,7 +142,7 @@ state: {
 
 ```javascript
 const api = axios.create({
-  baseURL: 'http://192.168.56.1:3000/api',  // 後端 API 基礎 URL
+  baseURL: 'http://192.168.0.10:3000/api',  // 後端 API 基礎 URL
   timeout: 10000
 })
 ```
