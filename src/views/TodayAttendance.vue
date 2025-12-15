@@ -15,7 +15,7 @@
             <input
             v-model="searchKeyword"
             type="text"
-            placeholder="輸入姓名 / 法名 / 手機後三碼"
+            placeholder="輸入姓名 / 法名"
             @keyup.enter="handleSearchCheckin"
             />
             <button
@@ -77,6 +77,9 @@
               :key="item.id"
               class="member-item"
               :class="{ selected: isSelected('available', item.id) }"
+              :data-type="'available'"
+              :data-id="item.id"
+              tabindex="-1"
               @click="select('available', item.id)"
               @dblclick="handleAvailableDblClick(item.id)"
             >
@@ -85,9 +88,9 @@
               <span v-if="item.dharma_name" class="dharma">
                 （{{ item.dharma_name }}）
               </span>
-              <span v-if="item.group" class="group">
+              <!-- <span v-if="item.group" class="group">
                 · {{ item.group }}
-              </span>
+              </span> -->
               <span class="status-tag" v-if="item.status !== 'active'">
                 {{ statusText(item.status) }}
               </span>
@@ -128,6 +131,9 @@
               :key="item.id"
               class="member-item"
               :class="{ selected: isSelected('withMeal', item.id) }"
+              :data-type="'withMeal'"
+              :data-id="item.id"
+              tabindex="-1"
               @click="select('withMeal', item.id)"
             >
               <span class="index">{{ index + 1 }}.</span>
@@ -135,9 +141,9 @@
               <span v-if="item.dharma_name" class="dharma">
                 （{{ item.dharma_name }}）
               </span>
-              <span v-if="item.group" class="group">
+              <!-- <span v-if="item.group" class="group">
                 · {{ item.group }}
-              </span>
+              </span> -->
               <span class="time">{{ formatTime(item.checked_in_at) }}</span>
             </li>
             <li v-if="withMealList.length === 0" class="empty">
@@ -176,6 +182,9 @@
               :key="item.id"
               class="member-item"
               :class="{ selected: isSelected('withoutMeal', item.id) }"
+              :data-type="'withoutMeal'"
+              :data-id="item.id"
+              tabindex="-1"
               @click="select('withoutMeal', item.id)"
             >
               <span class="index">{{ index + 1 }}.</span>
@@ -183,9 +192,9 @@
               <span v-if="item.dharma_name" class="dharma">
                 （{{ item.dharma_name }}）
               </span>
-              <span v-if="item.group" class="group">
+              <!-- <span v-if="item.group" class="group">
                 · {{ item.group }}
-              </span>
+              </span> -->
               <span class="time">{{ formatTime(item.checked_in_at) }}</span>
             </li>
             <li v-if="withoutMealList.length === 0" class="empty">
@@ -195,7 +204,7 @@
         </div>
 
         <!-- 🔹 上週同日出席名單 -->
-        <div class="column last-week-column">
+        <!-- <div class="column last-week-column">
           <div class="column-header">
             <span>
               上週
@@ -234,7 +243,7 @@
               </li>
             </template>
           </ul>
-        </div>
+        </div> -->
 
       </div>
     </div>
@@ -242,7 +251,7 @@
   
   <script setup>
   import CheckinScanner from '../components/CheckinScanner.vue'
-  import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+  import { ref, onMounted, onBeforeUnmount, computed, nextTick } from 'vue'
   import {
     fetchAttendancesByDate,
     createAttendance,
@@ -322,12 +331,34 @@ import { useRouter } from 'vue-router'
   // ---- 選取狀態 ----
   const selected = ref({ type: null, id: null }) // type: 'available' | 'withMeal' | 'withoutMeal'
   
+  // ✅ 批次高亮（這次報到成功的多筆）
+  const batchSelected = ref({
+    withMeal: [],
+    withoutMeal: [],
+    available: []
+  })
+
+  function clearBatchSelected() {
+    batchSelected.value = { withMeal: [], withoutMeal: [], available: [] }
+  }
+
   function select(type, id) {
+    clearBatchSelected()
     selected.value = { type, id }
   }
   
   function isSelected(type, id) {
-    return selected.value.type === type && selected.value.id === id
+    const single = selected.value.type === type && selected.value.id === id
+    const batch = (batchSelected.value[type] || []).includes(id)
+    return single || batch
+  }
+
+  // ✅ scroll + focus 到指定列
+  function focusAttendanceRow(type, id) {
+    const el = document.querySelector(`[data-type="${type}"][data-id="${id}"]`)
+    if (!el) return
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    if (typeof el.focus === 'function') el.focus({ preventScroll: true })
   }
 
   function getAnonLabel(att) {
@@ -420,6 +451,7 @@ function rebuildNonMemberSlotsFromAttendances() {
   async function loadData() {
     loading.value = true
     error.value = ''
+    clearBatchSelected()
     try {
       const [attRes, memRes] = await Promise.all([
         fetchAttendancesByDate(dateString),
@@ -597,29 +629,59 @@ function rebuildNonMemberSlotsFromAttendances() {
   }
   
   // ---- 搜尋框：按 Enter 或按鈕 -> POST /api/checkin ----
-async function handleSearchCheckin() {
+  async function handleSearchCheckin() {
   const kw = searchKeyword.value.trim()
   if (!kw || submitting.value) return
 
   submitting.value = true
   try {
-    await checkinByKeyword(kw)
+    const res = await checkinByKeyword(kw)
+
+    // ✅ 後端可能回 attendance(單筆) 或 attendances(多筆)
+    const newAtts =
+      res?.data?.attendances ||
+      (res?.data?.attendance ? [res.data.attendance] : [])
 
     // 清空輸入框
     searchKeyword.value = ''
 
-    // 重新載入資料，讓三欄狀態更新
+    // 重新載入資料
     await loadData()
+    await nextTick()
+    
+    // ✅ 把這次成功報到的成員全都設為選取(高亮)
+    const withIds = []
+    const withoutIds = []
+
+    for (const a of newAtts) {
+      if (!a?.id) continue
+      if (Boolean(a.with_meal)) withIds.push(a.id)
+      else withoutIds.push(a.id)
+    }
+
+    batchSelected.value.withMeal = withIds
+    batchSelected.value.withoutMeal = withoutIds
+
+    // ✅ focus 到「最新一筆」（通常就是最後一筆）
+    const focusAtt = newAtts[newAtts.length - 1]
+    if (focusAtt?.id) {
+      const type = focusAtt.with_meal ? 'withMeal' : 'withoutMeal'
+      // 單筆選取仍要設，避免箭頭操作沒有 target
+      selected.value = { type, id: focusAtt.id }
+      await nextTick()
+      focusAttendanceRow(type, focusAtt.id)
+    }
   } catch (e) {
     console.error(e)
     alert(
       '報到失敗：' +
-        (e?.response?.data?.message || e?.message || '未知錯誤')
+      (e?.response?.data?.message || e?.message || '未知錯誤')
     )
   } finally {
     submitting.value = false
   }
 }
+
 
 async function loadLastWeekList() {
     lastWeekLoading.value = true
@@ -792,7 +854,7 @@ async function loadLastWeekList() {
   align-items: center;
   gap: 8px;
   margin-bottom: 16px;
-  font-size: 15px;
+  font-size: 20px;
   color: #224366;
 }
 
@@ -807,7 +869,7 @@ async function loadLastWeekList() {
   padding: 4px 8px;
   border: 1px solid #bbb;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 18px;
 }
 
 .search-box button {
@@ -816,7 +878,7 @@ async function loadLastWeekList() {
   border: 1px solid #888;
   background: #ffffff;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 18px;
 }
 
 .search-box button:disabled {
@@ -885,7 +947,7 @@ async function loadLastWeekList() {
     padding: 8px 10px;
     background: #e3eef5;
     border-bottom: 1px solid #ddd;
-    font-size: 14px;
+    font-size: 18px;
     font-weight: 600;
   }
   
@@ -905,7 +967,7 @@ async function loadLastWeekList() {
     display: flex;
     align-items: center;
     padding: 4px 8px;
-    font-size: 14px;
+    font-size: 20px;
     border-bottom: 1px solid #f0f0f0;
     gap: 4px;
     cursor: pointer;
@@ -918,6 +980,11 @@ async function loadLastWeekList() {
   /* 被選取時的高亮 */
   .member-item.selected {
     background: #ffe9b5;
+  }
+
+  .member-item:focus {
+    outline: 2px solid rgba(34, 67, 102, 0.35);
+    outline-offset: -2px;
   }
   
   .index {
@@ -978,7 +1045,7 @@ async function loadLastWeekList() {
 
   .top-actions{
   max-width: 1300px;   /* 跟 .attendance-panel 一樣寬 */
-  margin: 18px 165px 0;
+  margin: 18px 0px 0;
   padding: 0 6px;
   display: flex;
   align-items: center;

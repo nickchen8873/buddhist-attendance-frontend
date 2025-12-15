@@ -7,8 +7,8 @@ import { login } from '../api'
 const router = useRouter()
 const userStore = useUserStore()
 
-const username = ref('')
-const password = ref('')
+const username = ref('zz001')
+const password = ref('29112615')
 
 const handleLogin = async () => {
   try {
