@@ -14,7 +14,6 @@
           <a style="font-size: 28px;">新店念佛會志工系統</a>
         </div>
         <div style="position: relative;left: 50%;transform: translate(-50%, 0%)">
-          <button class="btn" @click="onAdd">新增蓮友</button>
           <button class="btn" @click="activity">本日報到</button>
           <button class="btn" @click="handleLogout">系統退出</button>
         </div>
@@ -28,7 +27,7 @@
   </header>
   <div class="member-form-panel">
     <h2>{{ mode === 'edit' ? '編輯成員資料' : '新增成員資料' }}</h2>
-    <form @submit.prevent="onSubmit">
+    <form @submit.prevent="onSubmit" @keydown.enter="handleEnter">
       <div class="form-grid">
         <!-- 左欄 -->
         <div class="col">
@@ -271,10 +270,15 @@ const inputStyle = computed(() => {
   }
 })
 
-// 產生「昨天」的 YYYY-MM-DD」字串
-const getYesterdayString = () => {
+const handleLogout = () => {
+  userStore.logout()
+  router.push('/login')
+}
+
+// 產生「今天」的 YYYY-MM-DD」字串
+const getTodayString = () => {
   const d = new Date()
-  d.setDate(d.getDate() - 1)
+  d.setDate(d.getDate())
   return d.toISOString().slice(0, 10)
 }
 
@@ -296,7 +300,7 @@ onMounted(async () => {
       id: data + 1
     }
     await nextTick()
-    created_at.value = getYesterdayString()
+    created_at.value = getTodayString()
   }
 
   if (mode === 'edit' && route.params.id) {
@@ -402,6 +406,10 @@ function validateForm () {
   return true
 }
 
+function activity(){
+  router.push('/attendance/today')
+}
+
 async function onSubmit () {
   try {
     // 先做前端驗證
@@ -426,6 +434,17 @@ async function onSubmit () {
 
 function onCancel () {
   router.back()
+}
+
+function handleEnter(e) {
+  const tag = (e.target?.tagName || '').toLowerCase()
+  const type = (e.target?.getAttribute?.('type') || '').toLowerCase()
+
+  // ✅ 讓「焦點在按鈕上」時仍可用 Enter 觸發（鍵盤操作比較直覺）
+  if (tag === 'button' || type === 'submit') return
+
+  // ✅ 其餘情況（在 input/select 等）一律阻止 Enter 送出表單
+  e.preventDefault()
 }
 
 </script>

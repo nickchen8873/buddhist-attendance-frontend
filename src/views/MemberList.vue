@@ -31,7 +31,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="m in members" :key="m.id" class="member-item" :class="{ selected: isSelected(m.id) }" @click="select(m.id)" @dblclick="onEdit(m)" style="cursor: pointer;">
+        <tr v-for="m in members" :key="m.id" @dblclick="onEdit(m)" style="cursor: pointer;">
           <td><input type="checkbox" v-model="selectedIds" :value="m.id" /></td>
           <td>{{ m.id }}</td>
           <td>{{ m.group }}</td>
@@ -65,15 +65,13 @@
 import { ref, watch } from 'vue'
 import {getMembers} from '../api/member'
 
-defineProps(['members', 'onAdd', 'onEdit', 'onDelete', 'fetchMembers', 'fetchRecent3Months','select','is'])
+defineProps(['members', 'onAdd', 'onEdit', 'onDelete', 'fetchMembers', 'fetchRecent3Months'])
 
 let selectAll = ref(false)
 let selectedIds = ref([])
 let keyword = ref('')
 let emit = defineEmits(['search']);
 
-// ---- 選取狀態 ----
-const selected = ref({ id: null }) // type: 'available' | 'withMeal' | 'withoutMeal'
 
 watch(selectAll, val => {
   if (val) {
@@ -119,13 +117,6 @@ function SendKeywordToParent() {
   emit('search', keyword.value)
 }
 
-function select(id) {
-  selected.value = { id }
-}
-
-function isSelected(id) {
-  selected.value.id === id
-}
 
 // function SendSeletedIdToParent(selectedId) {
 //   let selectedIds = []
@@ -237,8 +228,4 @@ function isSelected(id) {
   cursor: pointer;
 }
 
-/* 被選取時的高亮 */
-.member-item.selected {
-    background: #ffe9b5;
-}
 </style>
