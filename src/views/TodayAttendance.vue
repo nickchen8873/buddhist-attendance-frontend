@@ -20,9 +20,13 @@
             />
             <button
             type="button"
-            :disabled="submitting || !searchKeyword.trim()"
             @click="handleSearchCheckin"
             >
+            <!-- <button
+            type="button"
+            :disabled="submitting || !searchKeyword.trim()"
+            @click="handleSearchCheckin"
+            > -->
             搜尋報到
             </button>
         </div>
@@ -55,6 +59,11 @@
               v-for="(item, index) in nonMemberSlots"
               :key="index"
               class="member-item"
+              :class="{ selected: isSelected('anonymous', index) }"
+              :data-type="'anonymous'"
+              :data-id="index"
+              tabindex="-1"
+              @click="select('anonymous', index)"
               @dblclick="handleNonMemberDblClick(item, index)"
             >
               <span class="name">{{ item }}</span>
@@ -266,7 +275,7 @@ import { useRouter } from 'vue-router'
   const attendances = ref([])
   const members = ref([])
   const loading = ref(false)
-  const submitting = ref(false)
+  const submitting = ref(false) //目前暫時把按鈕Disable的狀態拿掉
   const error = ref('')
 
   // 上週同日出席名單
@@ -329,17 +338,18 @@ import { useRouter } from 'vue-router'
   })
   
   // ---- 選取狀態 ----
-  const selected = ref({ type: null, id: null }) // type: 'available' | 'withMeal' | 'withoutMeal'
+  const selected = ref({ type: null, id: null }) // type: 'anonymous' / 'available' | 'withMeal' | 'withoutMeal'
   
   // ✅ 批次高亮（這次報到成功的多筆）
   const batchSelected = ref({
     withMeal: [],
     withoutMeal: [],
-    available: []
+    available: [],
+    anonymous: []
   })
 
   function clearBatchSelected() {
-    batchSelected.value = { withMeal: [], withoutMeal: [], available: [] }
+    batchSelected.value = { withMeal: [], withoutMeal: [], available: [], anonymous: [] }
   }
 
   function select(type, id) {
