@@ -9,38 +9,39 @@
             </div>
 
             <div class="header-right">
-                {{ paddedId }}
+              <div class="cell id-cell">{{ paddedId }}</div>
+              <div class="cell name-cell">{{ member.name }}</div>
             </div>
 
             <!-- 左下：文字資訊區 -->
             <div class="body-left">
                 <div class="info-grid">
-                <!-- 1. 姓名 / 法名 -->
-                <div class="cell label">姓名</div>
-                <div class="cell">{{ member.name }}</div>
-                <div class="cell label">法名</div>
-                <div class="cell">{{ member.dharma_name || '' }}</div>
+                  <!-- 1. 姓名 / 法名 -->
+                  <div class="cell label">姓名</div>
+                  <div class="cell">{{ member.name }}</div>
+                  <div class="cell label">法名</div>
+                  <div class="cell">{{ member.dharma_name || '' }}</div>
 
-                <!-- 2. 生日 / 報到 -->
-                <div class="cell label">生日</div>
-                <div class="cell birthday-cell">年　　月　　日</div>
-                <div class="cell label">報到</div>
-                <div class="cell">
-                    {{ formatDate(member.created_at) }}
-                </div>
+                  <!-- 2. 生日 / 報到 -->
+                  <!-- <div class="cell label">生日</div>
+                  <div class="cell birthday-cell">年　　月　　日</div>
+                  <div class="cell label">報到</div>
+                  <div class="cell">
+                      {{ formatDate(member.created_at) }}
+                  </div> -->
 
-                <!-- 3. 電話 / 性別 -->
-                <div class="cell label">電話</div>
-                <div class="cell">{{ member.phone || member.telephone || '' }}</div>
-                <div class="cell label">性別</div>
-                <div class="cell">{{ genderText }}</div>
+                  <!-- 3. 電話 / 性別 -->
+                  <!-- <div class="cell label">電話</div>
+                  <div class="cell">{{ member.phone || member.telephone || '' }}</div>
+                  <div class="cell label">性別</div>
+                  <div class="cell">{{ genderText }}</div> -->
 
-                <!-- 4. 地址（跨 3 欄） -->
-                <div class="cell label address-label">地址</div>
-                <div class="cell address-cell" style="grid-column: span 3">
-                    {{ member.address }}
-                </div>
-                </div>
+                  <!-- 4. 地址（跨 3 欄） -->
+                  <!-- <div class="cell label address-label">地址</div>
+                  <div class="cell address-cell" style="grid-column: span 3">
+                      {{ member.address }}
+                  </div> -->
+                </div> 
             </div>
 
             <!-- 右下：QR Code 區 -->
@@ -173,7 +174,7 @@ const barcodeUrl = ref('')
 }
 .header-left .cell.label {
   justify-content: center;
-  font-weight: bold;
+  /* font-weight: bold; */
 }
 /* 編號數字橫跨第 2~4 欄，讓右邊框和下面「姓名」那格對齊 */
 .header-left .id-cell {
@@ -190,6 +191,12 @@ const barcodeUrl = ref('')
   padding-left: 6mm;
   font-size: 1em;   /* 20px */
 }
+.header-right .id-cell {
+    padding: 0px 115px 0px 23px;
+    /* border-right: 1px solid #000; */
+    display: flex;
+    font-size: 1em;
+  }
 
 /* ===== 文字資訊區（左下） ===== */
 .body-left {
@@ -240,8 +247,8 @@ const barcodeUrl = ref('')
   padding: 8mm 5mm;
 }
 .qr-img {
-  width: 32mm;
-  height: 32mm;
+  width: 47mm;
+  height: 47mm;
 }
 
 /* 列印按鈕區 */

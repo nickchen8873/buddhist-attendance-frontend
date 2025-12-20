@@ -18,7 +18,8 @@
           </div>
   
           <div class="header-right">
-            {{ getPaddedId(m) }}
+            <div class="cell id-cell">{{ getPaddedId(m) }}</div>
+            <div class="cell name-cell">{{ m.name }}</div>
           </div>
   
           <!-- 左下：文字資訊區 -->
@@ -31,31 +32,33 @@
               <div class="cell">{{ m.dharma_name || '' }}</div>
   
               <!-- 2. 生日 / 報到 -->
-              <div class="cell label">生日</div>
+              <!-- <div class="cell label">生日</div>
               <div class="cell birthday-cell">年　　月　　日</div>
               <div class="cell label">報到</div>
               <div class="cell">
                 {{ formatDate(m.created_at) }}
-              </div>
+              </div> -->
   
               <!-- 3. 電話 / 性別 -->
-              <div class="cell label">電話</div>
+              <!-- <div class="cell label">電話</div>
               <div class="cell">{{ m.phone || m.telephone || '' }}</div>
               <div class="cell label">性別</div>
-              <div class="cell">{{ getGenderText(m) }}</div>
+              <div class="cell">{{ getGenderText(m) }}</div> -->
   
               <!-- 4. 地址（跨 3 欄） -->
-              <div class="cell label address-label">地址</div>
+              <!-- <div class="cell label address-label">地址</div>
               <div class="cell address-cell" style="grid-column: span 3">
                 {{ m.address }}
-              </div>
+              </div> -->
             </div>
           </div>
   
           <!-- 右下：QR Code 區 -->
           <div class="body-right">
             <div class="qr-wrapper">
-              <img v-if="m.qrUrl" :src="m.qrUrl" class="qr-img" />
+              <div class="backup-qr">
+                <img v-if="m.qrUrl" :src="m.qrUrl" class="qr-img" />
+              </div>
               <img v-if="m.qrUrl" :src="m.qrUrl" class="qr-img" />
             </div>
           </div>
@@ -198,7 +201,6 @@
     grid-row: 1;
     border-right: 1px solid #000;
     border-bottom: 1px solid #000;
-  
     display: grid;
     grid-template-columns: 20mm auto 20mm auto;
   }
@@ -215,7 +217,6 @@
   }
   .header-left .cell.label {
     justify-content: center;
-    font-weight: bold;
   }
   .header-left .id-cell {
     grid-column: 2 / 5;
@@ -228,7 +229,13 @@
     border-bottom: 1px solid #000;
     display: flex;
     align-items: center;
-    padding-left: 6mm;
+    /* padding-left: 6mm; */
+    font-size: 1em;
+  }
+  .header-right .id-cell {
+    padding: 0px 128px 0px 23px;
+    /* border-right: 1px solid #000; */
+    display: flex;
     font-size: 1em;
   }
   
@@ -284,8 +291,8 @@
   }
   
   .qr-img {
-    width: 32mm;
-    height: 32mm;
+    width: 47mm;
+    height: 47mm;
   }
   
   /* 列印按鈕區 */
