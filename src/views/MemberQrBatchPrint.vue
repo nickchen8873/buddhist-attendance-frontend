@@ -287,7 +287,7 @@
   .qr-wrapper {
     display: flex;
     gap: 8mm;
-    padding: 8mm 5mm;
+    padding: 1mm 5mm;
   }
   
   .qr-img {
