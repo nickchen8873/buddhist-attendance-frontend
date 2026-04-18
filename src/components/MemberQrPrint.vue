@@ -10,7 +10,7 @@
 
             <div class="header-right">
               <div class="cell id-cell">{{ paddedId }}</div>
-              <div class="cell name-cell">{{ member.name }}</div>
+              <div class="cell name-cell">{{ member.name }}({{ member.dharma_name }})</div>
             </div>
 
             <!-- 左下：文字資訊區 -->
