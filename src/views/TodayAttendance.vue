@@ -9,9 +9,12 @@
     <div class="attendance-panel">
       <!-- 上方只顯示日期 -->
       <div class="summary-row">
-        <span>日期：{{ displayDate }}</span>
+        <span>
+          日期：{{ displayDate }}
+          <span v-if="isHistoryMode" class="history-badge">歷史檢視（唯讀）</span>
+        </span>
 
-        <div class="search-box">
+        <div v-if="!isHistoryMode" class="search-box">
             <input
             v-model="searchKeyword"
             type="text"
@@ -50,7 +53,7 @@
   
       <div v-else class="columns">
         <!-- 非成員設定（暫時用靜態欄位） -->
-        <div class="column narrow">
+        <div v-if="!isHistoryMode" class="column narrow">
           <div class="column-header center">
             <span>非成員設定</span>
           </div>
@@ -75,7 +78,7 @@
         </div>
   
         <!-- 本次活動可設定成員（尚未報到） -->
-        <div class="column">
+        <div v-if="!isHistoryMode" class="column">
           <div class="column-header">
             <span>本次活動可設定成員</span>
             <span>{{ availableMembersSorted.length }} 人</span>
@@ -111,7 +114,7 @@
         </div>
   
         <!-- 控制欄：可設定成員 ⇄ 用餐成員 -->
-        <div class="control-column">
+        <div v-if="!isHistoryMode" class="control-column">
           <button
             class="ctrl-btn"
             :disabled="!canMoveAvailableToWithMeal || submitting"
@@ -162,7 +165,7 @@
         </div>
   
         <!-- 控制欄：用餐成員 ⇄ 不用餐成員 -->
-        <div class="control-column">
+        <div v-if="!isHistoryMode" class="control-column">
           <button
             class="ctrl-btn"
             :disabled="!canMoveWithMealToWithoutMeal || submitting"
@@ -270,7 +273,7 @@
     fetchLastWeekAttendances
   } from '../api/attendance'
 import {getMembers} from '../api/member'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
   
   const attendances = ref([])
   const members = ref([])
@@ -287,10 +290,20 @@ import { useRouter } from 'vue-router'
   // 🔍 搜尋用關鍵字
   const searchKeyword = ref('')
   
-  // 今天日期字串（YYYY-MM-DD）
-  const today = new Date()
-  const dateString = today.toISOString().slice(0, 10)
-  const displayDate = computed(() => dateString)
+  const route = useRoute()
+
+  // 依 route.params.date 決定查詢日期；若無則為今天（本日報到）
+  const dateString = computed(() => {
+    const p = route.params?.date
+    if (p) return String(p)
+    const d = new Date()
+    const pad = n => n.toString().padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  })
+  const displayDate = computed(() => dateString.value)
+
+  // 歷史檢視（唯讀）模式
+  const isHistoryMode = computed(() => route.name === 'attendance-history')
   
   // 非成員設定：暫時用靜態資料，你之後可以改從 DB 撈
   const nonMemberSlotsMaster = [
@@ -323,7 +336,7 @@ import { useRouter } from 'vue-router'
   function isCheckedInToday(member) {
     if (!member.last_checked_in) return false
     const lastDate = String(member.last_checked_in).split('T')[0]
-    return lastDate === dateString
+    return lastDate === dateString.value
   }
   
   // 可設定成員：今日尚未報到的 active 成員
@@ -464,7 +477,7 @@ function rebuildNonMemberSlotsFromAttendances() {
     clearBatchSelected()
     try {
       const [attRes, memRes] = await Promise.all([
-        fetchAttendancesByDate(dateString),
+        fetchAttendancesByDate(dateString.value),
         getMembers()
       ])
       attendances.value = attRes.data || []
@@ -697,7 +710,7 @@ async function loadLastWeekList() {
     lastWeekLoading.value = true
     lastWeekError.value = ''
     try {
-      const res = await fetchLastWeekAttendances(dateString)
+      const res = await fetchLastWeekAttendances(dateString.value)
       const payload = res.data || {}
       lastWeekList.value = payload.data || []
       lastWeekTargetDate.value = payload.targetDate || ''
@@ -872,6 +885,17 @@ async function loadLastWeekList() {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.history-badge {
+  display: inline-block;
+  margin-left: 12px;
+  padding: 2px 10px;
+  font-size: 16px;
+  color: #fff;
+  background: #c0392b;
+  border-radius: 10px;
+  vertical-align: middle;
 }
 
 .search-box input {
