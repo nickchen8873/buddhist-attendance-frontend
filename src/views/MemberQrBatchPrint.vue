@@ -19,7 +19,7 @@
   
           <div class="header-right">
             <div class="cell id-cell">{{ getPaddedId(m) }}</div>
-            <div class="cell name-cell">{{ m.name }}</div>
+            <div class="cell name-cell">{{ m.name }}({{ m.dharma_name }})</div>
           </div>
   
           <!-- 左下：文字資訊區 -->

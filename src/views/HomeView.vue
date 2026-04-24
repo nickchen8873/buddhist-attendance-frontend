@@ -34,7 +34,6 @@
     <!-- 以下可放首頁其他內容 -->
     <MemberList
       :members="members"
-      :onSearch="refresh"
       :onAdd="onAdd"
       :onEdit="onEdit"
       :onDelete="onDelete"
