@@ -22,6 +22,12 @@ const routes = [
     component: () => import('../views/TodayAttendance.vue')
   },
   {
+    path: '/attendance/history/:date',
+    name: 'attendance-history',
+    component: () => import('../views/TodayAttendance.vue'),
+    props: true
+  },
+  {
     path: '/members/:id/qr-print',
     name: 'member-qr-print',
     component: () => import('../components/MemberQrPrint.vue')

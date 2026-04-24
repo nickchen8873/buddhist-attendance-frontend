@@ -17,6 +17,7 @@
           <div style="position: relative;left: 50%;transform: translate(-50%, 0%)">
             <button class="btn" @click="onAdd">新增蓮友</button>
             <button class="btn" @click="activity">本日報到</button>
+            <button class="btn" @click="openHistoryDialog">歷史報到</button>
             <!-- <button class="btn" @click="manage">帳號管理</button> -->
             <button class="btn" @click="handleLogout">系統退出</button>
           </div>
@@ -42,6 +43,22 @@
       @search="handleSearch"
       @syncSeletedId="syncSeletedId"
     />
+
+    <div v-if="showHistoryDialog" class="history-mask" @click.self="closeHistoryDialog">
+      <div class="history-dialog">
+        <div class="history-dialog__title">選擇歷史報到日期</div>
+        <input
+          type="date"
+          v-model="historyDate"
+          :max="todayStr"
+          class="history-dialog__input"
+        />
+        <div class="history-dialog__btns">
+          <button class="btn history-btn-cancel" @click="closeHistoryDialog">取消</button>
+          <button class="btn history-btn-ok" :disabled="!historyDate" @click="goHistoryAttendance">查詢</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -60,6 +77,27 @@ const userStore = useUserStore()
 const router = useRouter()
 const members = ref([])
 let selectedIds = ref([])
+
+const showHistoryDialog = ref(false)
+const historyDate = ref('')
+const todayStr = (() => {
+  const d = new Date()
+  const pad = n => n.toString().padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+})()
+
+function openHistoryDialog() {
+  historyDate.value = todayStr
+  showHistoryDialog.value = true
+}
+function closeHistoryDialog() {
+  showHistoryDialog.value = false
+}
+function goHistoryAttendance() {
+  if (!historyDate.value) return
+  router.push({ name: 'attendance-history', params: { date: historyDate.value } })
+  showHistoryDialog.value = false
+}
 
 const handleLogout = () => {
   userStore.logout()
@@ -296,5 +334,55 @@ button {
   font-size: 18px;
   background-color: #fdc92d;
   cursor: pointer;
+}
+.history-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.history-dialog {
+  background: #fff;
+  border-radius: 10px;
+  padding: 28px 32px;
+  min-width: 320px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+}
+.history-dialog__title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.history-dialog__input {
+  width: 100%;
+  height: 40px;
+  font-size: 18px;
+  padding: 4px 8px;
+  box-sizing: border-box;
+  margin-bottom: 18px;
+}
+.history-dialog__btns {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.history-dialog__btns .btn {
+  margin-right: 0;
+}
+.history-btn-cancel {
+  background: #eee;
+  border-color: #aaa;
+}
+.history-btn-ok {
+  background: #fdc92d;
+  border-color: #b88a00;
+}
+.history-btn-ok:disabled {
+  background: #f0e0a0;
+  cursor: not-allowed;
 }
 </style>
